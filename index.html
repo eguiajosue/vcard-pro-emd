@@ -1,0 +1,3663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vCard Pro | EMD Publicidad</title>
+
+    <!-- Libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Fonts: Inter (primary) + Pacifico (brand accent only) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+
+    <!-- Anti-FOUC: apply theme class before paint -->
+    <script>
+        (function(){
+            var saved = localStorage.getItem('theme');
+            var sysLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            if (saved === 'light' || (!saved && sysLight)) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
+    <style>
+    /* ================================================================
+       DESIGN TOKENS
+    ================================================================ */
+    :root {
+        /* Brand palette */
+        --fuchsia:        #ea1585;
+        --fuchsia-deep:   #c0106e;
+        --cyan:           #06b2e3;
+        --breezy:         #45e0a8;
+        --citric:         #ccf32e;
+
+        /* Accent system — fuchsia in both modes */
+        --accent:         var(--fuchsia);
+        --accent-deep:    var(--fuchsia-deep);
+        --accent-text:    #ffffff;
+        --accent-glow:    rgba(234, 21, 133, 0.22);
+        --gradient-btn:   linear-gradient(135deg, #ea1585 0%, #c0106e 100%);
+
+        /* Dark theme (default) */
+        --bg:             #09090f;
+        --bg-card:        #111120;
+        --bg-input:       #1b1b2a;
+        --bg-hover:       #1f1f30;
+        --border:         rgba(255,255,255,0.07);
+        --border-strong:  rgba(255,255,255,0.13);
+        --border-focus:   var(--fuchsia);
+        --text-1:         #f2f2f5;
+        --text-2:         #8a8a96;
+        --text-3:         #45455a;
+        --shadow-card:    0 0 0 1px rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.5);
+        --shadow-modal:   0 0 0 1px rgba(255,255,255,0.05), 0 24px 64px rgba(0,0,0,0.6);
+        --shadow-accent:  0 4px 24px var(--accent-glow);
+
+        /* Phone preview */
+        --pv-bg:          #000000;
+        --pv-card:        #1c1c1e;
+        --pv-border:      rgba(255,255,255,0.1);
+        --pv-text:        #f5f5f7;
+        --pv-muted:       #8e8e93;
+
+        /* App bar */
+        --bar-bg:         rgba(9, 9, 15, 0.82);
+
+        /* Border radius */
+        --r-xs:  5px;
+        --r-sm:  10px;
+        --r-md:  13px;
+        --r-lg:  18px;
+        --r-xl:  24px;
+        --r-full: 9999px;
+
+        /* Easing */
+        --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+        --t-fast: 140ms;
+        --t-base: 220ms;
+        --t-slow: 380ms;
+
+        /* Legacy aliases — keep for JS compatibility */
+        --brand-fuchsia:  #ea1585;
+        --brand-breezy:   #45e0a8;
+        --brand-cyan:     #06b2e3;
+        --brand-citric:   #ccf32e;
+        --brand-cloud:    #f5f6f1;
+        --brand-b:        #131218;
+        --bg-body:        var(--bg);
+        --bg-input-alias: var(--bg-input);
+        --border-color:   var(--border);
+        --border-focus-alias: var(--border-focus);
+        --text-primary:   var(--text-1);
+        --text-secondary: var(--text-2);
+        --btn-secondary-hover: var(--bg-hover);
+        --radius-lg:      var(--r-lg);
+        --radius-md:      var(--r-md);
+        --transition:     all var(--t-base) var(--ease);
+    }
+
+    /* Light mode */
+    [data-theme="light"], body.light-mode {
+        --bg:            #f5f5f7;
+        --bg-card:       #ffffff;
+        --bg-input:      #f0f0f5;
+        --bg-hover:      #e8e8ed;
+        --border:        rgba(0,0,0,0.07);
+        --border-strong: rgba(0,0,0,0.12);
+        --border-focus:  var(--fuchsia);
+        --text-1:        #1d1d1f;
+        --text-2:        #6e6e73;
+        --text-3:        #aeaeb2;
+        --shadow-card:   0 0 0 1px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.08);
+        --shadow-modal:  0 0 0 1px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.18);
+        --accent-glow:   rgba(234, 21, 133, 0.14);
+        --pv-bg:         #f2f2f7;
+        --pv-card:       #ffffff;
+        --pv-border:     rgba(0,0,0,0.08);
+        --pv-text:       #1d1d1f;
+        --pv-muted:      #8e8e93;
+        --bar-bg:        rgba(245,245,247,0.82);
+        --btn-secondary-hover: var(--bg-input);
+    }
+
+    /* ================================================================
+       RESET
+    ================================================================ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* ================================================================
+       BASE
+    ================================================================ */
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background-color: var(--bg);
+        color: var(--text-1);
+        margin: 0;
+        padding: 72px 20px 48px;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        transition: background-color var(--t-slow) var(--ease),
+                    color var(--t-slow) var(--ease);
+        line-height: 1.5;
+    }
+
+    /* ================================================================
+       APP BAR — frosted glass
+    ================================================================ */
+    .app-bar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 58px;
+        background: var(--bar-bg);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 22px;
+        z-index: 100;
+        transition: background var(--t-base) var(--ease),
+                    border-color var(--t-base) var(--ease);
+    }
+
+    .app-bar-brand {
+        display: flex;
+        align-items: baseline;
+        gap: 9px;
+        flex-shrink: 0;
+        padding-right: 18px;
+        margin-right: 2px;
+        border-right: 1px solid var(--border-strong);
+    }
+
+    .app-bar-logo {
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: var(--text-1);
+        white-space: nowrap;
+    }
+
+    .app-bar-sub {
+        font-size: 0.68rem;
+        color: var(--text-2);
+        font-weight: 500;
+        white-space: nowrap;
+        letter-spacing: 0.2px;
+    }
+
+    .app-bar-status {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.76rem;
+        color: var(--text-2);
+        font-weight: 500;
+        flex: 1;
+        overflow: hidden;
+        min-width: 0;
+    }
+
+    .app-bar-status i { color: var(--cyan); flex-shrink: 0; transition: color var(--t-base); font-size: 0.8rem; }
+    .app-bar-status.editing i { color: var(--citric); }
+    .app-bar-status span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .app-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    .app-bar-divider {
+        width: 1px;
+        height: 20px;
+        background: var(--border-strong);
+        margin: 0 3px;
+    }
+
+    /* ================================================================
+       TOOLBAR BUTTONS
+    ================================================================ */
+    .toolbar-btn {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-1);
+        padding: 6px 12px;
+        border-radius: var(--r-sm);
+        font-size: 0.77rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: border-color var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    background var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease);
+        white-space: nowrap;
+        letter-spacing: -0.1px;
+    }
+
+    .toolbar-btn:hover {
+        border-color: var(--fuchsia);
+        color: var(--fuchsia);
+        background: rgba(234, 21, 133, 0.06);
+        transform: translateY(-1px);
+    }
+
+    .toolbar-badge {
+        background: var(--fuchsia);
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: var(--r-full);
+        min-width: 14px;
+        text-align: center;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+        width: 34px;
+        height: 34px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-2);
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: border-color var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease);
+        flex-shrink: 0;
+    }
+
+    .theme-toggle:hover {
+        border-color: var(--fuchsia);
+        color: var(--fuchsia);
+        transform: rotate(18deg);
+    }
+
+    /* ================================================================
+       LAYOUT
+    ================================================================ */
+    .layout-wrapper {
+        display: flex;
+        gap: 36px;
+        max-width: 1080px;
+        width: 100%;
+        align-items: flex-start;
+        justify-content: center;
+        animation: pageEnter 0.45s var(--ease-out) both;
+    }
+
+    @keyframes pageEnter {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ================================================================
+       FORM CONTAINER (LEFT COLUMN)
+    ================================================================ */
+    .container {
+        background: var(--bg-card);
+        padding: 36px 32px;
+        border-radius: var(--r-xl);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-card);
+        flex: 1;
+        max-width: 510px;
+        box-sizing: border-box;
+        transition: background var(--t-base) var(--ease),
+                    border-color var(--t-base) var(--ease),
+                    box-shadow var(--t-base) var(--ease);
+    }
+
+    /* ================================================================
+       HEADER
+    ================================================================ */
+    .header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    h2 {
+        margin: 0 0 4px;
+        font-weight: 700;
+        font-size: 1.65rem;
+        letter-spacing: -0.6px;
+        color: var(--text-1);
+    }
+
+    .pacifico-accent {
+        font-family: 'Pacifico', cursive;
+        color: var(--fuchsia);
+        font-weight: 400;
+        font-size: 1.85rem;
+        margin-left: 5px;
+    }
+
+    .subtitle {
+        color: var(--text-2);
+        font-size: 0.88rem;
+        margin: 0;
+        font-weight: 400;
+        letter-spacing: -0.1px;
+    }
+
+    /* ================================================================
+       MODE TABS
+    ================================================================ */
+    .mode-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 4px;
+    }
+
+    .mode-tab {
+        flex: 1;
+        padding: 9px 14px;
+        border: 1px solid transparent;
+        border-radius: calc(var(--r-md) - 2px);
+        font-size: 0.82rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: background var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    border-color var(--t-fast) var(--ease),
+                    box-shadow var(--t-fast) var(--ease);
+        color: var(--text-2);
+        background: transparent;
+        letter-spacing: -0.1px;
+    }
+
+    .mode-tab i { font-size: 0.85rem; }
+
+    .mode-tab.active {
+        background: var(--bg-card);
+        color: var(--text-1);
+        border-color: var(--border);
+        box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+    }
+
+    /* ================================================================
+       ACCORDIONS
+    ================================================================ */
+    details.accordion {
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        margin-bottom: 10px;
+        background: var(--bg-card);
+        transition: border-color var(--t-base) var(--ease);
+        overflow: hidden;
+    }
+
+    details.accordion:has(> summary:hover):not([open]) {
+        border-color: var(--border-strong);
+    }
+
+    details.accordion > summary {
+        list-style: none;
+        padding: 13px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        background: var(--bg-input);
+        transition: background var(--t-fast) var(--ease);
+        user-select: none;
+    }
+
+    details.accordion > summary::-webkit-details-marker { display: none; }
+
+    details.accordion > summary:hover { background: var(--bg-hover); }
+
+    details.accordion[open] > summary {
+        border-bottom: 1px solid var(--border);
+    }
+
+    .acc-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-1);
+        letter-spacing: -0.1px;
+    }
+
+    .acc-title i {
+        color: var(--cyan);
+        width: 16px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    .acc-arrow {
+        color: var(--text-3);
+        font-size: 0.8rem;
+        transition: transform var(--t-base) var(--ease);
+    }
+
+    details.accordion[open] > summary .acc-arrow { transform: rotate(180deg); }
+
+    .acc-progress-badge {
+        margin-left: auto;
+        margin-right: 10px;
+        font-size: 0.68rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 2px 8px;
+        border-radius: var(--r-full);
+        color: var(--text-2);
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .accordion-body {
+        padding: 18px 16px 6px;
+        animation: accOpen var(--t-base) var(--ease-out) both;
+    }
+
+    @keyframes accOpen {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ================================================================
+       FORM FIELDS
+    ================================================================ */
+    .form-row { display: flex; gap: 10px; }
+    .form-group { margin-bottom: 14px; flex: 1; position: relative; }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.78rem;
+        color: var(--text-1);
+        font-weight: 500;
+        letter-spacing: -0.05px;
+    }
+
+    .required::after { content: " *"; color: var(--fuchsia); }
+
+    input, textarea, select {
+        width: 100%;
+        padding: 10px 13px;
+        min-height: 42px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        background: var(--bg-input);
+        color: var(--text-1);
+        box-sizing: border-box;
+        font-size: 0.855rem;
+        font-family: inherit;
+        font-weight: 400;
+        letter-spacing: -0.05px;
+        transition: border-color var(--t-fast) var(--ease),
+                    box-shadow var(--t-fast) var(--ease),
+                    background var(--t-fast) var(--ease);
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--text-3); }
+
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--fuchsia);
+        box-shadow: 0 0 0 3px rgba(234, 21, 133, 0.13);
+    }
+
+    textarea { resize: vertical; min-height: 72px; }
+
+    /* ================================================================
+       MULTI-FIELD ROWS (phones / emails)
+    ================================================================ */
+    .multi-field-block { margin-bottom: 14px; }
+
+    .multi-field-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .multi-field-header label { margin-bottom: 0; }
+
+    .btn-add-field {
+        background: transparent;
+        border: none;
+        color: var(--cyan);
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 4px;
+        transition: color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease);
+        border-radius: var(--r-xs);
+    }
+
+    .btn-add-field:hover { color: var(--fuchsia); transform: translateX(2px); }
+
+    .multi-row {
+        display: flex;
+        gap: 7px;
+        align-items: flex-start;
+        margin-bottom: 7px;
+        animation: slideDown var(--t-base) var(--ease-out) both;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .multi-row select {
+        flex: 0 0 92px;
+        padding: 10px 8px;
+        font-size: 0.78rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8a96'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        padding-right: 24px;
+    }
+
+    .multi-row input { flex: 1; }
+    .multi-row .btn-delete { flex-shrink: 0; width: 38px; height: 42px; }
+    .multi-row.primary-row .btn-delete { visibility: hidden; }
+
+    .primary-tag {
+        font-size: 0.6rem;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ================================================================
+       BRAND SECTION (logo + color)
+    ================================================================ */
+    .field-note {
+        display: block;
+        color: var(--text-2);
+        font-size: 0.72rem;
+        margin-top: 5px;
+        line-height: 1.45;
+    }
+
+    .social-section-desc {
+        font-size: 0.8rem;
+        color: var(--text-2);
+        margin-top: -4px;
+        margin-bottom: 14px;
+        line-height: 1.55;
+    }
+
+    .logo-upload-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .logo-preview {
+        width: 58px;
+        height: 58px;
+        border-radius: var(--r-md);
+        border: 1px dashed var(--border-strong);
+        background: var(--bg-input);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        color: var(--text-3);
+        font-size: 1.2rem;
+        overflow: hidden;
+        transition: border-color var(--t-fast) var(--ease);
+    }
+
+    .logo-preview:hover { border-color: var(--fuchsia); }
+    .logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    .logo-upload-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    .btn-upload-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-1);
+        padding: 8px 14px;
+        border-radius: var(--r-sm);
+        font-size: 0.79rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease);
+        font-family: inherit;
+    }
+
+    .btn-upload-logo:hover { border-color: var(--fuchsia); color: var(--fuchsia); }
+
+    .btn-remove-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: transparent;
+        border: none;
+        color: var(--fuchsia);
+        padding: 2px 4px;
+        font-size: 0.74rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        opacity: 0.85;
+        transition: opacity var(--t-fast);
+    }
+
+    .btn-remove-logo:hover { opacity: 1; }
+
+    /* Color picker */
+    .color-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    input[type="color"] {
+        width: 40px;
+        height: 40px;
+        padding: 3px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        background: var(--bg-input);
+        cursor: pointer;
+        flex-shrink: 0;
+        min-height: 0;
+    }
+
+    .color-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .color-swatch {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--bg-card);
+        box-shadow: 0 0 0 1px var(--border-strong);
+        cursor: pointer;
+        padding: 0;
+        transition: transform var(--t-fast) var(--ease-spring),
+                    box-shadow var(--t-fast) var(--ease);
+    }
+
+    .color-swatch:hover {
+        transform: scale(1.18);
+        box-shadow: 0 0 0 2px var(--fuchsia);
+    }
+
+    .btn-reset-color {
+        background: transparent;
+        border: none;
+        color: var(--text-2);
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+        font-family: inherit;
+        margin-left: auto;
+        transition: color var(--t-fast);
+    }
+
+    .btn-reset-color:hover { color: var(--fuchsia); }
+
+    /* ================================================================
+       SOCIAL GRID
+    ================================================================ */
+    .social-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 18px;
+        background: var(--bg-input);
+        padding: 11px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+    }
+
+    .social-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-1);
+        font-size: 1.1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: background var(--t-fast) var(--ease),
+                    border-color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring),
+                    color var(--t-fast) var(--ease);
+        padding: 0;
+    }
+
+    .social-btn:hover:not(.disabled) {
+        transform: translateY(-3px);
+        border-color: var(--fuchsia);
+        background: var(--fuchsia);
+        color: #fff;
+    }
+
+    .social-btn.disabled { opacity: 0.15; cursor: not-allowed; transform: none; }
+
+    /* Active social rows */
+    #active-socials-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .active-social-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        background: var(--bg-input);
+        padding: 10px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        animation: slideDown var(--t-base) var(--ease-out) both;
+    }
+
+    .active-social-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: var(--r-sm);
+        font-size: 1.1rem;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .active-social-row .form-group { margin-bottom: 0; flex: 1; }
+    .active-social-row input { background: var(--bg-card); }
+
+    /* Delete button */
+    .btn-delete {
+        background: rgba(234, 21, 133, 0.08);
+        color: var(--fuchsia);
+        border: 1px solid rgba(234, 21, 133, 0.15);
+        width: 36px;
+        height: 36px;
+        border-radius: var(--r-sm);
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    border-color var(--t-fast) var(--ease);
+        flex-shrink: 0;
+        padding: 0;
+    }
+
+    .btn-delete:hover {
+        background: var(--fuchsia);
+        color: #fff;
+        border-color: var(--fuchsia);
+    }
+
+    /* ================================================================
+       ACTION BUTTONS
+    ================================================================ */
+    .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    button.btn-primary, button.btn-secondary {
+        width: 100%;
+        padding: 13px 20px;
+        border-radius: var(--r-md);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.92rem;
+        font-family: inherit;
+        letter-spacing: -0.2px;
+        transition: transform var(--t-fast) var(--ease),
+                    box-shadow var(--t-fast) var(--ease),
+                    filter var(--t-fast) var(--ease),
+                    opacity var(--t-fast) var(--ease);
+    }
+
+    /* Primary — fuchsia gradient */
+    .btn-primary {
+        background: var(--gradient-btn);
+        color: #ffffff;
+        border: none;
+        box-shadow: var(--shadow-accent);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0);
+        transition: background var(--t-fast) var(--ease);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(234, 21, 133, 0.38);
+    }
+
+    .btn-primary:active { transform: scale(0.97); box-shadow: var(--shadow-accent); }
+
+    /* Secondary / ghost */
+    .btn-secondary {
+        background: transparent;
+        color: var(--text-1);
+        border: 1px solid var(--border-strong);
+        display: none;
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-hover);
+        border-color: var(--text-2);
+    }
+
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* Spinner inside primary */
+    .btn-primary .btn-spinner {
+        display: none;
+        width: 15px;
+        height: 15px;
+        border: 2px solid rgba(255,255,255,0.35);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.65s linear infinite;
+        margin-right: 7px;
+    }
+
+    .btn-primary.loading .btn-spinner { display: inline-block; }
+    .btn-primary.loading .btn-label-text { opacity: 0.82; }
+    .btn-primary .btn-inner { display: flex; align-items: center; justify-content: center; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ================================================================
+       VALIDATION
+    ================================================================ */
+    .form-group.field-error input {
+        border-color: var(--fuchsia);
+        box-shadow: 0 0 0 3px rgba(234, 21, 133, 0.13);
+        animation: shake 0.38s var(--ease);
+    }
+
+    .form-group.field-error .field-hint { display: block; }
+    .field-hint { display: none; color: var(--fuchsia); font-size: 0.71rem; margin-top: 4px; font-weight: 500; }
+
+    .field-warning { border-color: #f59e0b !important; }
+    .validation-message { display: none; font-size: 0.7rem; color: #f59e0b; margin-top: 4px; font-weight: 500; }
+    .field-warning + .validation-message { display: block; }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%       { transform: translateX(-4px); }
+        40%       { transform: translateX(4px); }
+        60%       { transform: translateX(-3px); }
+        80%       { transform: translateX(3px); }
+    }
+
+    /* ================================================================
+       DEVELOPER INFO
+    ================================================================ */
+    .developer-info {
+        margin-top: 28px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-size: 0.77rem;
+        color: var(--text-2);
+    }
+
+    .developer-info strong { color: var(--text-1); font-weight: 600; }
+    .developer-info .location { display: block; margin-top: 2px; font-size: 0.72rem; opacity: 0.7; }
+
+    /* ================================================================
+       PREVIEW PANEL (RIGHT COLUMN)
+    ================================================================ */
+    .preview-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        position: sticky;
+        top: 76px;
+    }
+
+    /* ----------------------------------------------------------------
+       Toggle switch (Preview | QR)
+    ---------------------------------------------------------------- */
+    .toggle-switch {
+        display: flex;
+        background: var(--bg-card);
+        border-radius: var(--r-full);
+        padding: 3px;
+        border: 1px solid var(--client-accent, var(--fuchsia));
+        width: 214px;
+        position: relative;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+        transition: border-color var(--t-base) var(--ease);
+    }
+
+    .toggle-btn {
+        flex: 1;
+        padding: 8px 0;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        font-size: 0.82rem;
+        cursor: pointer;
+        z-index: 2;
+        color: var(--text-2);
+        font-family: inherit;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        letter-spacing: -0.1px;
+        transition: color var(--t-base) var(--ease);
+    }
+
+    .toggle-btn.active { color: #ffffff; }
+    .toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .toggle-bg {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: calc(50% - 3px);
+        height: calc(100% - 6px);
+        background: var(--client-accent, var(--fuchsia));
+        border-radius: var(--r-full);
+        transition: transform var(--t-base) cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color var(--t-base) var(--ease);
+        z-index: 1;
+    }
+
+    /* ----------------------------------------------------------------
+       Phone mockup
+    ---------------------------------------------------------------- */
+    .phone-mockup {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+        width: 320px;
+        height: 648px;
+        background: var(--pv-bg);
+        border: 12px solid #16161e;
+        border-radius: 44px;
+        position: relative;
+        overflow: hidden;
+        box-shadow:
+            0 0 0 1px rgba(255,255,255,0.08),
+            0 28px 64px rgba(0,0,0,0.55);
+        display: flex;
+        flex-direction: column;
+        transition: background var(--t-base) var(--ease);
+    }
+
+    .phone-notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 110px;
+        height: 24px;
+        background: #16161e;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+        z-index: 20;
+    }
+
+    .view-content {
+        display: none;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        animation: fadeIn var(--t-base) var(--ease-out) both;
+    }
+
+    .view-content.active { display: flex; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    /* ---- Preview header ---- */
+    .pv-header {
+        background: var(--pv-bg);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 46px 18px 18px;
+        position: relative;
+        transition: background var(--t-base) var(--ease);
+    }
+
+    .pv-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: var(--pv-card);
+        color: var(--pv-text);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 11px;
+        border: 2px solid var(--client-accent, var(--pv-border));
+        letter-spacing: 1px;
+        transition: all var(--t-base) var(--ease);
+    }
+
+    .pv-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        text-align: center;
+        color: var(--pv-text);
+        letter-spacing: -0.3px;
+        transition: color var(--t-base) var(--ease);
+    }
+
+    .pv-job {
+        font-size: 0.8rem;
+        font-weight: 400;
+        color: var(--pv-muted);
+        margin-top: 3px;
+        text-align: center;
+        padding: 0 16px;
+        transition: color var(--t-base) var(--ease);
+    }
+
+    .pv-quick-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .pv-action-btn {
+        width: 40px;
+        height: 40px;
+        background: var(--pv-card);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--pv-text);
+        font-size: 1rem;
+        border: 1px solid var(--pv-border);
+        transition: border-color var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring);
+    }
+
+    .pv-action-btn:hover {
+        border-color: var(--client-accent, var(--fuchsia));
+        color: var(--client-accent, var(--fuchsia));
+        transform: translateY(-2px);
+    }
+
+    /* ---- Preview body ---- */
+    .pv-body {
+        padding: 14px 18px 18px;
+        flex: 1;
+        overflow-y: auto;
+        color: var(--pv-text);
+        -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+        transition: color var(--t-base) var(--ease);
+    }
+
+    .pv-body::-webkit-scrollbar { display: none; }
+
+    .pv-empty-hint {
+        text-align: center;
+        color: var(--pv-muted);
+        font-size: 0.76rem;
+        padding: 8px 18px 0;
+        line-height: 1.55;
+        transition: opacity var(--t-base) var(--ease);
+    }
+
+    /* Contact card */
+    .pv-contact-card {
+        background: var(--pv-card);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--pv-border);
+        overflow: hidden;
+        transition: all var(--t-base) var(--ease);
+    }
+
+    .pv-contact-item {
+        display: flex;
+        align-items: center;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--pv-border);
+        transition: border-color var(--t-base) var(--ease);
+    }
+
+    .pv-contact-item:last-child { border-bottom: none; }
+
+    .pv-contact-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--pv-text);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 11px;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        opacity: 0.7;
+    }
+
+    .pv-contact-content { flex: 1; overflow: hidden; }
+    .pv-contact-label { font-size: 0.67rem; color: var(--pv-muted); margin-bottom: 1px; font-weight: 500; }
+    .pv-contact-value { font-size: 0.86rem; font-weight: 500; color: var(--pv-text); word-break: break-word; }
+
+    /* Social list */
+    .pv-social-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+
+    .pv-social-item {
+        display: flex;
+        align-items: center;
+        background: var(--pv-card);
+        border: 1px solid var(--pv-border);
+        padding: 9px 12px;
+        border-radius: 10px;
+        transition: all var(--t-base) var(--ease);
+    }
+
+    .pv-social-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-size: 1rem;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+
+    .pv-social-text-container { flex: 1; display: flex; flex-direction: column; }
+    .pv-social-name { font-weight: 500; font-size: 0.86rem; color: var(--pv-text); }
+    .pv-social-user { font-size: 0.72rem; color: var(--pv-muted); margin-top: 1px; }
+    .pv-social-arrow { color: var(--pv-muted); font-size: 0.85rem; }
+
+    /* Add contact button */
+    .pv-add-btn {
+        background: var(--pv-text);
+        color: var(--pv-bg);
+        border: none;
+        width: 100%;
+        padding: 13px;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 18px;
+        transition: all var(--t-base) var(--ease);
+        cursor: pointer;
+        font-family: inherit;
+        letter-spacing: -0.1px;
+    }
+
+    /* ----------------------------------------------------------------
+       QR View
+    ---------------------------------------------------------------- */
+    .qr-view-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 28px 24px;
+    }
+
+    #qr-result {
+        background: #ffffff;
+        padding: 14px;
+        border-radius: 14px;
+        border: 2.5px solid var(--client-accent, var(--fuchsia));
+        width: 100%;
+        aspect-ratio: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: border-color var(--t-base) var(--ease);
+        box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    }
+
+    #qr-result canvas { max-width: 100%; height: auto !important; display: block; }
+
+    .qr-instruction {
+        margin-top: 16px;
+        color: var(--pv-muted);
+        font-size: 0.82rem;
+        text-align: center;
+        font-weight: 400;
+    }
+
+    .qr-extra-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        width: 100%;
+    }
+
+    .qr-icon-btn {
+        flex: 1;
+        background: var(--pv-card);
+        border: 1px solid var(--pv-border);
+        color: var(--pv-text);
+        padding: 9px 10px;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: border-color var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring);
+        font-family: inherit;
+    }
+
+    .qr-icon-btn:hover {
+        border-color: var(--client-accent, var(--fuchsia));
+        color: var(--client-accent, var(--fuchsia));
+        transform: translateY(-2px);
+    }
+
+    /* QR animation */
+    #qr-result.qr-pop { animation: qrPop 0.42s var(--ease-spring) both; }
+
+    @keyframes qrPop {
+        from { opacity: 0; transform: scale(0.78); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* ================================================================
+       TOASTS
+    ================================================================ */
+    #toast-container {
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+        pointer-events: none;
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+
+    .toast {
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        background: var(--bg-card);
+        color: var(--text-1);
+        border: 1px solid var(--border-strong);
+        padding: 11px 16px;
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow-modal);
+        font-size: 0.83rem;
+        font-weight: 500;
+        max-width: 360px;
+        animation: toastIn 0.32s var(--ease-spring) both;
+        letter-spacing: -0.05px;
+    }
+
+    .toast.hide { animation: toastOut var(--t-base) var(--ease) forwards; }
+    .toast i { font-size: 0.95rem; flex-shrink: 0; }
+    .toast.warn i    { color: var(--fuchsia); }
+    .toast.success i { color: var(--breezy); }
+    .toast.info i    { color: var(--cyan); }
+
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateY(-14px) scale(0.94); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes toastOut {
+        to { opacity: 0; transform: translateY(-10px) scale(0.94); }
+    }
+
+    /* ================================================================
+       MODALS
+    ================================================================ */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(6px) saturate(120%);
+        -webkit-backdrop-filter: blur(6px) saturate(120%);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+        animation: fadeIn var(--t-base) var(--ease-out);
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--r-xl);
+        width: 100%;
+        max-width: 470px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-modal);
+        animation: modalPop 0.28s var(--ease-spring) both;
+    }
+
+    @keyframes modalPop {
+        from { opacity: 0; transform: scale(0.93) translateY(12px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: -0.2px;
+    }
+
+    .modal-header h3 i { color: var(--fuchsia); font-size: 0.9rem; }
+
+    .modal-close {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    border-color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring);
+        flex-shrink: 0;
+        font-size: 0.85rem;
+    }
+
+    .modal-close:hover {
+        background: var(--fuchsia);
+        color: #fff;
+        border-color: var(--fuchsia);
+        transform: rotate(90deg);
+    }
+
+    .modal-search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-2);
+        font-size: 0.85rem;
+    }
+
+    .modal-search input {
+        border: none;
+        background: transparent;
+        padding: 4px 0;
+        box-shadow: none !important;
+        flex: 1;
+        width: auto;
+        min-height: 0;
+        font-size: 0.85rem;
+    }
+
+    .modal-list {
+        overflow-y: auto;
+        padding: 8px 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .modal-empty {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 48px 28px;
+        color: var(--text-2);
+        gap: 7px;
+    }
+
+    .modal-empty i { font-size: 2rem; color: var(--text-3); margin-bottom: 5px; }
+    .modal-empty p { margin: 0; font-weight: 600; color: var(--text-1); font-size: 0.95rem; }
+    .modal-empty span { font-size: 0.79rem; }
+
+    /* ----------------------------------------------------------------
+       Library cards
+    ---------------------------------------------------------------- */
+    .library-card {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        padding: 10px 11px;
+        transition: border-color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring),
+                    background var(--t-fast) var(--ease);
+        cursor: pointer;
+    }
+
+    .library-card:hover {
+        border-color: var(--fuchsia);
+        transform: translateY(-1px);
+    }
+
+    .library-card.active-editing {
+        border-color: var(--citric);
+        background: rgba(204, 243, 46, 0.05);
+    }
+
+    .lib-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--gradient-btn);
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .lib-info { flex: 1; overflow: hidden; }
+    .lib-name { font-weight: 600; font-size: 0.86rem; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lib-sub  { font-size: 0.73rem; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+
+    .lib-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .lib-icon-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: background var(--t-fast) var(--ease),
+                    color var(--t-fast) var(--ease),
+                    border-color var(--t-fast) var(--ease);
+        font-size: 0.78rem;
+        flex-shrink: 0;
+    }
+
+    .lib-icon-btn:hover { color: #fff; }
+    .lib-icon-btn.edit:hover      { background: var(--cyan); border-color: var(--cyan); }
+    .lib-icon-btn.duplicate:hover { background: var(--breezy); border-color: var(--breezy); }
+    .lib-icon-btn.delete:hover    { background: var(--fuchsia); border-color: var(--fuchsia); }
+    .lib-icon-btn.export:hover    { background: var(--citric); border-color: var(--citric); color: #131218; }
+
+    /* ----------------------------------------------------------------
+       Batch import
+    ---------------------------------------------------------------- */
+    .batch-upload-zone {
+        margin: 14px 18px;
+        padding: 20px;
+        border: 2px dashed var(--border-strong);
+        border-radius: var(--r-md);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        transition: border-color var(--t-fast) var(--ease);
+    }
+
+    .batch-upload-zone:hover { border-color: var(--fuchsia); }
+
+    .batch-preview { padding: 0 18px 14px; }
+    .batch-summary { font-size: 0.83rem; color: var(--text-2); margin-bottom: 9px; font-weight: 600; }
+    .batch-summary strong { color: var(--citric); }
+
+    .batch-table-wrap {
+        max-height: 200px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+    }
+
+    .batch-table { width: 100%; border-collapse: collapse; font-size: 0.71rem; }
+    .batch-table th { position: sticky; top: 0; background: var(--bg-input); text-align: left; padding: 7px 9px; font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--border); }
+    .batch-table td { padding: 6px 9px; border-bottom: 1px solid var(--border); color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+    .batch-table tr:last-child td { border-bottom: none; }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 14px 18px;
+        border-top: 1px solid var(--border);
+    }
+
+    /* ----------------------------------------------------------------
+       Templates
+    ---------------------------------------------------------------- */
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+        padding: 18px;
+    }
+
+    .template-card {
+        cursor: pointer;
+        border: 1.5px solid var(--border);
+        border-radius: var(--r-md);
+        overflow: hidden;
+        transition: border-color var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring),
+                    box-shadow var(--t-fast) var(--ease);
+        text-align: center;
+        background: var(--bg-input);
+    }
+
+    .template-card:hover {
+        border-color: var(--fuchsia);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(234, 21, 133, 0.2);
+    }
+
+    .template-preview { width: 100%; height: 90px; }
+
+    .template-card h4 {
+        margin: 10px 0 3px;
+        font-size: 0.87rem;
+        color: var(--text-1);
+        font-weight: 600;
+        letter-spacing: -0.1px;
+    }
+
+    .template-card p {
+        margin: 0 8px 10px;
+        font-size: 0.69rem;
+        color: var(--text-2);
+        line-height: 1.35;
+    }
+
+    /* ----------------------------------------------------------------
+       Export options
+    ---------------------------------------------------------------- */
+    .export-options {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 14px 18px;
+    }
+
+    .export-option {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        padding: 13px 14px;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color var(--t-fast) var(--ease),
+                    background var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease);
+        font-family: inherit;
+    }
+
+    .export-option:hover {
+        border-color: var(--fuchsia);
+        background: rgba(234, 21, 133, 0.05);
+        transform: translateX(3px);
+    }
+
+    .export-option i:first-child { font-size: 1.5rem; color: var(--fuchsia); flex-shrink: 0; }
+    .export-option span { flex: 1; }
+    .export-option strong { display: block; color: var(--text-1); font-weight: 600; font-size: 0.88rem; }
+    .export-option small { display: block; color: var(--text-2); font-size: 0.69rem; margin-top: 1px; }
+    .export-option i:last-child { color: var(--text-3); flex-shrink: 0; }
+
+    /* ================================================================
+       SOCIAL QR MODE
+    ================================================================ */
+    .social-qr-desc {
+        color: var(--text-2);
+        font-size: 0.81rem;
+        margin-bottom: 18px;
+        line-height: 1.55;
+    }
+
+    .social-qr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .social-qr-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 13px 7px 9px;
+        border-radius: var(--r-md);
+        border: 1.5px solid var(--border);
+        background: var(--bg-input);
+        cursor: pointer;
+        transition: border-color var(--t-fast) var(--ease),
+                    background var(--t-fast) var(--ease),
+                    transform var(--t-fast) var(--ease-spring),
+                    box-shadow var(--t-fast) var(--ease);
+        font-family: inherit;
+    }
+
+    .social-qr-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .social-qr-btn.selected {
+        border-width: 2px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    .social-qr-btn i { font-size: 1.4rem; }
+    .social-qr-btn span { font-size: 0.63rem; font-weight: 600; color: var(--text-2); }
+
+    /* WhatsApp featured card */
+    .social-qr-btn.wa-chat-featured {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 13px 16px;
+        background: rgba(37, 211, 102, 0.07);
+        border-color: #25D366;
+    }
+
+    .social-qr-btn.wa-chat-featured .wa-chat-label { flex: 1; text-align: left; }
+    .social-qr-btn.wa-chat-featured .wa-chat-label strong { display: block; font-size: 0.86rem; color: var(--text-1); font-weight: 700; }
+    .social-qr-btn.wa-chat-featured .wa-chat-label small  { font-size: 0.69rem; color: var(--text-2); font-weight: 400; }
+    .social-qr-btn.wa-chat-featured i { font-size: 1.8rem; color: #25D366; }
+    .social-qr-btn.wa-chat-featured .wa-badge {
+        background: #25D366;
+        color: white;
+        font-size: 0.58rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: var(--r-full);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: auto;
+    }
+
+    /* Social QR input wrap */
+    .social-qr-input-wrap {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 16px;
+        margin-bottom: 10px;
+        animation: slideDown var(--t-base) var(--ease-out) both;
+    }
+
+    .social-qr-selected-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding-bottom: 13px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .social-qr-selected-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: var(--r-sm);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .social-qr-selected-name { font-weight: 700; font-size: 0.95rem; color: var(--text-1); }
+    .social-qr-selected-sub  { font-size: 0.71rem; color: var(--text-2); }
+
+    .social-qr-input-row {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        background: var(--bg-card);
+        overflow: hidden;
+        transition: border-color var(--t-fast) var(--ease),
+                    box-shadow var(--t-fast) var(--ease);
+    }
+
+    .social-qr-input-row:focus-within {
+        border-color: var(--fuchsia);
+        box-shadow: 0 0 0 3px rgba(234, 21, 133, 0.13);
+    }
+
+    .social-qr-prefix {
+        font-size: 0.78rem;
+        color: var(--text-2);
+        padding: 10px 0 10px 12px;
+        white-space: nowrap;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .social-qr-input-row input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 10px 12px;
+        font-size: 0.84rem;
+        color: var(--text-1);
+        box-shadow: none;
+        min-height: 0;
+    }
+
+    .social-qr-url-preview {
+        font-size: 0.71rem;
+        color: var(--text-2);
+        background: var(--bg-card);
+        border-radius: var(--r-sm);
+        padding: 8px 12px;
+        word-break: break-all;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 36px;
+        border: 1px solid var(--border);
+        margin-top: 8px;
+    }
+
+    .social-qr-url-preview i { color: var(--citric); flex-shrink: 0; }
+    .social-qr-url-preview a { color: var(--cyan); text-decoration: none; }
+    .social-qr-url-preview a:hover { text-decoration: underline; }
+
+    /* ================================================================
+       VERSION HISTORY
+    ================================================================ */
+    .version-history {
+        max-height: 140px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        margin-top: 9px;
+    }
+
+    .version-item {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.74rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: background var(--t-fast) var(--ease);
+    }
+
+    .version-item:last-child { border-bottom: none; }
+    .version-item:hover { background: var(--bg-hover); }
+    .version-label  { color: var(--text-2); }
+    .version-date   { color: var(--text-3); font-size: 0.64rem; }
+    .version-action { color: var(--cyan); font-weight: 600; opacity: 0; transition: opacity var(--t-fast); }
+    .version-item:hover .version-action { opacity: 1; }
+
+    /* ================================================================
+       ACCESSIBILITY
+    ================================================================ */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    summary:focus-visible {
+        outline: 2px solid var(--fuchsia);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    button { -webkit-tap-highlight-color: transparent; }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.001ms !important;
+        }
+    }
+
+    /* ================================================================
+       MOBILE ACTION BAR
+    ================================================================ */
+    .mobile-actionbar {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+        background: var(--bar-bg);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-top: 1px solid var(--border);
+        z-index: 90;
+        gap: 8px;
+    }
+
+    /* ================================================================
+       RESPONSIVE
+    ================================================================ */
+    @media (max-width: 900px) {
+        body { padding: 66px 12px 40px; }
+
+        .layout-wrapper { flex-direction: column; align-items: center; gap: 24px; }
+
+        .preview-panel { position: relative; top: 0; margin-top: 0; }
+
+        .container { padding: 24px 16px 100px; width: 100%; max-width: 100%; border-radius: var(--r-lg); }
+
+        .form-row { flex-direction: column; gap: 0; }
+
+        .actions.desktop-actions { display: none; }
+        .mobile-actionbar { display: flex !important; }
+
+        .app-bar-sub { display: none; }
+        .app-bar-brand { padding-right: 10px; margin-right: 0; }
+        .app-bar-status { display: none; }
+        .app-bar { padding: 0 10px; gap: 6px; }
+
+        .toolbar-btn span:not(.toolbar-badge) { display: none; }
+        .toolbar-btn { padding: 7px 8px; }
+
+        .phone-mockup { width: 300px; height: 608px; }
+        .toggle-switch { width: 200px; }
+
+        .modal-box { border-radius: var(--r-lg); max-height: 92vh; }
+    }
+
+    @media (max-width: 380px) {
+        .phone-mockup { width: 280px; height: 565px; }
+        .social-qr-grid { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); }
+    }
+    </style>
+</head>
+<body>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ================================================================
+     APP BAR
+================================================================ -->
+<header class="app-bar">
+    <div class="app-bar-brand">
+        <span class="app-bar-logo">vCard <span class="pacifico-accent" style="font-size:1.1rem;">Pro</span></span>
+        <span class="app-bar-sub">EMD Publicidad</span>
+    </div>
+
+    <div class="app-bar-status" id="toolbar-status">
+        <i class="fa-regular fa-file"></i>
+        <span id="toolbar-status-text">Tarjeta nueva</span>
+    </div>
+
+    <div class="app-bar-actions">
+        <button class="toolbar-btn" onclick="openTemplatesModal()" title="Elegir plantilla de diseño">
+            <i class="fa-solid fa-palette"></i> <span>Plantilla</span>
+        </button>
+        <button class="toolbar-btn" id="btn-nueva" onclick="newCard()" title="Empezar una tarjeta nueva">
+            <i class="fa-solid fa-plus"></i> <span>Nueva</span>
+        </button>
+        <button class="toolbar-btn" onclick="openBatchModal()" title="Importar varios empleados desde un CSV">
+            <i class="fa-solid fa-file-csv"></i> <span>Lote CSV</span>
+        </button>
+        <button class="toolbar-btn" onclick="openLibrary()" title="Ver tarjetas guardadas">
+            <i class="fa-solid fa-address-book"></i> <span>Mis Tarjetas</span> <span class="toolbar-badge" id="library-count">0</span>
+        </button>
+        <div class="app-bar-divider"></div>
+        <button id="theme-toggle" class="theme-toggle" title="Cambiar tema">
+            <i class="fa-solid fa-sun"></i>
+        </button>
+    </div>
+</header>
+
+<div class="layout-wrapper">
+
+    <!-- ============================================================
+         LEFT COLUMN: FORM
+    ============================================================ -->
+    <div class="container">
+
+        <div class="header">
+            <h2>vCard<span class="pacifico-accent">Pro</span></h2>
+            <p class="subtitle">Crea tu tarjeta digital con código QR</p>
+        </div>
+
+        <!-- Mode tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="tab-vcard" onclick="switchMode('vcard')">
+                <i class="fa-solid fa-address-card"></i> Tarjeta vCard
+            </button>
+            <button class="mode-tab" id="tab-social" onclick="switchMode('social')">
+                <i class="fa-solid fa-qrcode"></i> Perfil Social
+            </button>
+        </div>
+
+        <!-- ===== VCARD PANEL ===== -->
+        <div id="panel-vcard">
+
+            <!-- 1. Datos Principales -->
+            <details class="accordion" id="acc-principales" open>
+                <summary>
+                    <div class="acc-title"><i class="fa-solid fa-user"></i> Datos Principales</div>
+                    <span class="acc-progress-badge" id="badge-principales">0/2</span>
+                    <i class="fa-solid fa-chevron-down acc-arrow"></i>
+                </summary>
+                <div class="accordion-body">
+                    <div class="form-row">
+                        <div class="form-group" id="fg-nombre">
+                            <label>Nombre:</label>
+                            <input type="text" id="v_nombre" placeholder="Ej. John">
+                            <span class="field-hint">Este campo es obligatorio</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellidos:</label>
+                            <input type="text" id="v_apellidos" placeholder="Ej. Doe">
+                        </div>
+                    </div>
+
+                    <div class="multi-field-block" id="fg-telefonos">
+                        <div class="multi-field-header">
+                            <label class="required">Teléfono(s):</label>
+                            <button type="button" class="btn-add-field" onclick="addPhoneRow()"><i class="fa-solid fa-plus"></i> Añadir</button>
+                        </div>
+                        <div id="phones-container"></div>
+                        <span class="field-hint">Agrega al menos un teléfono</span>
+                    </div>
+
+                    <div class="multi-field-block">
+                        <div class="multi-field-header">
+                            <label>Correo(s):</label>
+                            <button type="button" class="btn-add-field" onclick="addEmailRow()"><i class="fa-solid fa-plus"></i> Añadir</button>
+                        </div>
+                        <div id="emails-container"></div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 2. Trabajo & Biografía -->
+            <details class="accordion" id="acc-trabajo">
+                <summary>
+                    <div class="acc-title"><i class="fa-solid fa-briefcase"></i> Trabajo & Biografía</div>
+                    <span class="acc-progress-badge" id="badge-trabajo">0/4</span>
+                    <i class="fa-solid fa-chevron-down acc-arrow"></i>
+                </summary>
+                <div class="accordion-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Empresa:</label>
+                            <input type="text" id="v_empresa" placeholder="Ej. ACME Corp">
+                        </div>
+                        <div class="form-group">
+                            <label>Puesto:</label>
+                            <input type="text" id="v_puesto" placeholder="Ej. Director Creativo">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Página Web:</label>
+                        <input type="url" id="v_web" placeholder="https://www.johndoe.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Resumen / Biografía:</label>
+                        <textarea id="v_nota" placeholder="Escribe un breve resumen profesional..."></textarea>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 3. Dirección -->
+            <details class="accordion" id="acc-direccion">
+                <summary>
+                    <div class="acc-title"><i class="fa-solid fa-map-location-dot"></i> Dirección</div>
+                    <span class="acc-progress-badge" id="badge-direccion">0/6</span>
+                    <i class="fa-solid fa-chevron-down acc-arrow"></i>
+                </summary>
+                <div class="accordion-body">
+                    <div class="form-group">
+                        <label>Calle y Número:</label>
+                        <input type="text" id="v_calle" placeholder="Ej. Av. Principal 123">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ciudad:</label>
+                            <input type="text" id="v_ciudad" placeholder="Ej. Nuevo Laredo">
+                        </div>
+                        <div class="form-group">
+                            <label>Estado:</label>
+                            <input type="text" id="v_estado" placeholder="Ej. Tamaulipas">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Código Postal:</label>
+                            <input type="text" id="v_zip" placeholder="Ej. 88000">
+                        </div>
+                        <div class="form-group">
+                            <label>País:</label>
+                            <input type="text" id="v_pais" placeholder="Ej. México">
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 4. Marca del Cliente -->
+            <details class="accordion" id="acc-marca">
+                <summary>
+                    <div class="acc-title"><i class="fa-solid fa-palette"></i> Marca del Cliente</div>
+                    <span class="acc-progress-badge" id="badge-marca">0/2</span>
+                    <i class="fa-solid fa-chevron-down acc-arrow"></i>
+                </summary>
+                <div class="accordion-body">
+                    <p class="social-section-desc">Personaliza el logo y el color para este cliente. Se aplican al QR y a la vista previa.</p>
+                    <div class="form-group">
+                        <label>Logo de la empresa:</label>
+                        <div class="logo-upload-row">
+                            <div class="logo-preview" id="logo-preview"><i class="fa-regular fa-image"></i></div>
+                            <div class="logo-upload-actions">
+                                <label class="btn-upload-logo" for="v_logo_input"><i class="fa-solid fa-upload"></i> Subir logo</label>
+                                <input type="file" id="v_logo_input" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+                                <button type="button" class="btn-remove-logo" id="btn-remove-logo" onclick="removeLogo()" style="display:none;"><i class="fa-solid fa-trash"></i> Quitar</button>
+                            </div>
+                        </div>
+                        <span class="field-note">Se dibuja en el centro del código QR (fondo blanco automático).</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Color de marca:</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="v_brand_color" value="#06b2e3" oninput="handleColorChange(this.value)">
+                            <div class="color-presets" id="color-presets"></div>
+                            <button type="button" class="btn-reset-color" onclick="resetBrandColor()">Restablecer</button>
+                        </div>
+                        <span class="field-note">Colorea la vista previa y el marco del QR con la paleta del cliente.</span>
+                    </div>
+                </div>
+            </details>
+
+            <!-- 5. Redes Sociales -->
+            <details class="accordion" id="acc-sociales">
+                <summary>
+                    <div class="acc-title"><i class="fa-solid fa-hashtag"></i> Redes Sociales</div>
+                    <span class="acc-progress-badge" id="badge-sociales">0/?</span>
+                    <i class="fa-solid fa-chevron-down acc-arrow"></i>
+                </summary>
+                <div class="accordion-body">
+                    <p class="social-section-desc">Selecciona las redes que deseas añadir a tu tarjeta.</p>
+                    <div class="social-grid" id="social-grid"></div>
+                    <div id="active-socials-container"></div>
+                </div>
+            </details>
+
+            <div class="actions desktop-actions">
+                <button class="btn-primary" id="btn-generar" onclick="generarQR()">
+                    <span class="btn-inner"><span class="btn-spinner"></span><span class="btn-label-text">Generar Código QR</span></span>
+                </button>
+                <button class="btn-secondary" id="btn-guardar-tarjeta" onclick="saveCurrentCard()" style="display: block;">
+                    <i class="fa-regular fa-floppy-disk"></i> <span id="btn-guardar-label">Guardar Tarjeta</span>
+                </button>
+                <button class="btn-secondary" id="btn-exportar" onclick="openExportModal()" style="display: block;">
+                    <i class="fa-solid fa-download"></i> Descargar
+                </button>
+                <button class="btn-secondary" id="download-btn" onclick="descargarQR()" style="display: none;">
+                    Descargar QR en Alta Resolución
+                </button>
+            </div>
+
+            <div class="developer-info">
+                Diseño y Desarrollo UI/UX por <strong>Josué Eguía</strong>
+                <span class="location">Nuevo Laredo, Tamps.</span>
+            </div>
+
+        </div><!-- /#panel-vcard -->
+
+        <!-- ===== SOCIAL QR PANEL ===== -->
+        <div id="panel-social" style="display:none;">
+            <p class="social-qr-desc">Elige una red social, escribe tu username o pega tu URL y el código QR se genera automáticamente.</p>
+            <div class="social-qr-grid" id="social-qr-network-grid"></div>
+            <div class="social-qr-input-wrap" id="social-qr-input-wrap" style="display:none;">
+                <div class="social-qr-selected-info" id="social-qr-selected-info"></div>
+
+                <!-- WhatsApp Chat special form -->
+                <div id="wa-chat-form" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre <span style="font-size:0.7rem;color:var(--text-2);">(opcional)</span></label>
+                            <input type="text" id="wa-chat-nombre" placeholder="Ej. Juan Pérez" oninput="onWaChatInput()">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono <span style="color:var(--fuchsia)">*</span></label>
+                            <input type="tel" id="wa-chat-telefono" placeholder="+52 555 000 0000" oninput="onWaChatInput()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensaje predefinido <span style="font-size:0.7rem;color:var(--text-2);">(opcional)</span></label>
+                        <textarea id="wa-chat-mensaje" placeholder="Hola, me gustaría obtener más información..." rows="3" oninput="onWaChatInput()"></textarea>
+                        <span class="field-note">Al escanear el QR, WhatsApp abrirá el chat con este mensaje ya escrito.</span>
+                    </div>
+                    <div class="social-qr-url-preview" id="wa-chat-url-preview">
+                        <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i>
+                        <span style="opacity:0.5;">Ingresa un número para ver el enlace generado</span>
+                    </div>
+                </div>
+
+                <!-- Standard form -->
+                <div id="social-standard-form">
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label id="social-qr-input-label">Username o URL:</label>
+                        <div class="social-qr-input-row">
+                            <span class="social-qr-prefix" id="social-qr-prefix"></span>
+                            <input type="text" id="social-qr-value" placeholder="" oninput="onSocialQRInput()">
+                        </div>
+                        <span class="field-note" id="social-qr-hint"></span>
+                    </div>
+                    <div class="social-qr-url-preview" id="social-qr-url-preview"></div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.container -->
+
+    <!-- Mobile action bar -->
+    <div class="mobile-actionbar">
+        <button class="btn-secondary" id="btn-guardar-mobile" onclick="saveCurrentCard()"
+            style="display:flex;align-items:center;justify-content:center;flex:1;width:auto;padding:12px;"
+            title="Guardar tarjeta">
+            <i class="fa-regular fa-floppy-disk"></i>
+        </button>
+        <button class="btn-primary" id="btn-generar-mobile" onclick="generarQR()" style="flex:2;">
+            <span class="btn-inner"><span class="btn-spinner"></span><span class="btn-label-text">Generar QR</span></span>
+        </button>
+    </div>
+
+    <!-- ============================================================
+         RIGHT COLUMN: PHONE PREVIEW
+    ============================================================ -->
+    <div class="preview-panel">
+
+        <div class="toggle-switch">
+            <div class="toggle-bg" id="toggle-bg"></div>
+            <button class="toggle-btn active" id="btn-tab-preview" onclick="switchTab('preview')">Preview</button>
+            <button class="toggle-btn" id="btn-tab-qr" onclick="switchTab('qr')" disabled>
+                <i class="fa-solid fa-lock" id="qr-lock-icon" style="margin-right:5px;font-size:0.72rem;"></i>QR code
+            </button>
+        </div>
+
+        <div class="phone-mockup">
+            <div class="phone-notch"></div>
+
+            <!-- View 1: Preview -->
+            <div id="view-preview" class="view-content active">
+                <div class="pv-header">
+                    <div class="pv-avatar" id="pv-avatar">JD</div>
+                    <h2 class="pv-name" id="pv-name">John Doe</h2>
+                    <p class="pv-job" id="pv-job">Director Creativo en ACME Corp</p>
+                    <div class="pv-quick-actions" id="pv-quick-actions"></div>
+                </div>
+                <div class="pv-body">
+                    <p class="pv-empty-hint" id="pv-empty-hint">Completa el formulario a la izquierda y verás tu tarjeta cobrar vida aquí, en tiempo real.</p>
+                    <div class="pv-contact-card" id="pv-contact-card" style="display:none;"></div>
+                    <div class="pv-social-list" id="pv-social-list"></div>
+                    <button class="pv-add-btn">
+                        <i class="fa-regular fa-user"></i> Guardar Contacto
+                    </button>
+                </div>
+            </div>
+
+            <!-- View 2: QR Code -->
+            <div id="view-qr" class="view-content">
+                <div class="qr-view-container">
+                    <div id="qr-result">
+                        <canvas id="qr-canvas"></canvas>
+                    </div>
+                    <p class="qr-instruction" id="qr-instruction">Escanea para guardar el contacto.</p>
+                    <div class="qr-extra-actions">
+                        <button class="qr-icon-btn" onclick="descargarQR()"><i class="fa-solid fa-download"></i> Descargar</button>
+                        <button class="qr-icon-btn" id="btn-compartir" onclick="compartirQR()"><i class="fa-solid fa-share-nodes"></i> Compartir</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div><!-- /.layout-wrapper -->
+
+<!-- ================================================================
+     MODAL: MY CARDS LIBRARY
+================================================================ -->
+<div class="modal-overlay" id="library-overlay" onclick="if(event.target===this)closeLibrary()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-address-book"></i> Mis Tarjetas</h3>
+            <button class="modal-close" onclick="closeLibrary()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="library-search" placeholder="Buscar por nombre o empresa..." oninput="renderLibraryList(this.value)">
+            <button class="lib-icon-btn export" onclick="exportLibraryZip()" title="Descargar ZIP"><i class="fa-solid fa-file-zipper"></i></button>
+        </div>
+        <div class="modal-list" id="library-list"></div>
+        <div class="modal-empty" id="library-empty" style="display:none;">
+            <i class="fa-regular fa-folder-open"></i>
+            <p>Aún no tienes tarjetas guardadas.</p>
+            <span>Completa el formulario y presiona "Guardar Tarjeta".</span>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL: BATCH CSV IMPORT
+================================================================ -->
+<div class="modal-overlay" id="batch-overlay" onclick="if(event.target===this)closeBatchModal()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-file-csv"></i> Importar por Lote (CSV)</h3>
+            <button class="modal-close" onclick="closeBatchModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p class="social-section-desc" style="margin:14px 18px 0;">Sube un CSV con columnas <strong>Nombre, Apellidos, Telefono, Email, Empresa, Puesto</strong>. El logo y color de marca ya configurados se aplican a todas las tarjetas.</p>
+        <div class="batch-upload-zone" id="batch-drop-zone">
+            <input type="file" id="batch-csv-input" accept=".csv" style="display:none;" onchange="handleCSVFile(event)">
+            <label for="batch-csv-input" class="btn-upload-logo"><i class="fa-solid fa-upload"></i> Seleccionar CSV</label>
+            <span class="field-note" id="batch-filename">Ningún archivo seleccionado</span>
+        </div>
+        <div class="batch-preview" id="batch-preview" style="display:none;">
+            <div class="batch-summary" id="batch-summary"></div>
+            <div class="batch-table-wrap"><table class="batch-table" id="batch-table"></table></div>
+        </div>
+        <div class="modal-footer" id="batch-footer" style="display:none;">
+            <button class="btn-secondary" onclick="closeBatchModal()" style="width:auto;margin:0;display:block;">Cancelar</button>
+            <button class="btn-primary" id="btn-batch-generate" onclick="processBatchImport()" style="width:auto;margin:0;"><i class="fa-solid fa-layer-group"></i> Crear Tarjetas</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL: TEMPLATES
+================================================================ -->
+<div class="modal-overlay" id="templates-overlay" onclick="if(event.target===this)closeTemplatesModal()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-palette"></i> Elige tu Plantilla</h3>
+            <button class="modal-close" onclick="closeTemplatesModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p class="social-section-desc" style="margin:14px 18px 0;">Selecciona el diseño que prefieras. Podrás personalizar colores y logo después.</p>
+        <div class="templates-grid" id="templates-grid">
+            <div class="template-card" onclick="selectTemplate('minimalista')">
+                <div class="template-preview" style="background:linear-gradient(135deg,#f5f6f1 0%,#eef0eb 100%);"></div>
+                <h4>Minimalista</h4>
+                <p>Limpio y elegante. Ideal para profesionales.</p>
+            </div>
+            <div class="template-card" onclick="selectTemplate('corporativo')">
+                <div class="template-preview" style="background:linear-gradient(135deg,#1c1c24 0%,#262630 100%);"></div>
+                <h4>Corporativo</h4>
+                <p>Formal y profesional. Perfecto para empresas.</p>
+            </div>
+            <div class="template-card" onclick="selectTemplate('creativo')">
+                <div class="template-preview" style="background:linear-gradient(135deg,#ea1585 0%,#06b2e3 50%,#45e0a8 100%);"></div>
+                <h4>Creativo</h4>
+                <p>Audaz y moderno. Para marcas dinámicas.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL: EXPORT OPTIONS
+================================================================ -->
+<div class="modal-overlay" id="export-overlay" onclick="if(event.target===this)closeExportModal()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-download"></i> Descargar Tarjeta</h3>
+            <button class="modal-close" onclick="closeExportModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p class="social-section-desc" style="margin:14px 18px 0;">Elige el formato que necesitas.</p>
+        <div class="export-options">
+            <button class="export-option" onclick="exportAsVCF()">
+                <i class="fa-solid fa-file-csv"></i>
+                <span><strong>.VCF</strong><small>Contacto estándar (iPhone, Outlook, Gmail)</small></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="export-option" onclick="exportAsPDF()">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span><strong>.PDF</strong><small>Tarjeta de presentación (85×55mm, lista para imprimir)</small></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="export-option" onclick="exportAsHTML()">
+                <i class="fa-solid fa-globe"></i>
+                <span><strong>.HTML</strong><small>Página web autónoma (comparte como link)</small></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <button class="export-option" onclick="exportAsCSV()">
+                <i class="fa-solid fa-table"></i>
+                <span><strong>.CSV</strong><small>Importar a Excel, Google Contacts, Outlook</small></span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ================================================================
+   SYSTEM THEME DETECTION — runs after DOM is ready
+================================================================ */
+const themeBtn  = document.getElementById('theme-toggle');
+const body      = document.body;
+const themeIcon = themeBtn.querySelector('i');
+
+(function initTheme() {
+    const saved       = localStorage.getItem('theme');
+    const sysLight    = window.matchMedia('(prefers-color-scheme: light)').matches;
+    const shouldLight = saved === 'light' || (!saved && sysLight);
+
+    if (shouldLight) {
+        body.classList.add('light-mode');
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+    }
+    // Remove the html-level anti-FOUC attribute now that classes are in place
+    document.documentElement.removeAttribute('data-theme');
+})();
+
+themeBtn.addEventListener('click', () => {
+    body.classList.toggle('light-mode');
+    if (body.classList.contains('light-mode')) {
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+        localStorage.setItem('theme', 'light');
+    } else {
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+        localStorage.setItem('theme', 'dark');
+    }
+});
+
+// ================================================================
+// TOAST SYSTEM
+// ================================================================
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const icons = { success: 'fa-circle-check', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 3200);
+}
+
+// ================================================================
+// ACCORDION: ONE OPEN AT A TIME
+// ================================================================
+const SECTION_FIELDS = {
+    'acc-principales': ['v_nombre', 'v_telefono'],
+    'acc-trabajo': ['v_empresa', 'v_puesto', 'v_web', 'v_nota'],
+    'acc-direccion': ['v_calle', 'v_ciudad', 'v_estado', 'v_zip', 'v_pais'],
+    'acc-marca': [],
+    'acc-sociales': []
+};
+
+function updateAccordionBadges() {
+    Object.entries(SECTION_FIELDS).forEach(([accId, fields]) => {
+        const badgeEl = document.getElementById(`badge-${accId.replace('acc-', '')}`);
+        if (!badgeEl) return;
+        if (accId === 'acc-sociales') {
+            const socialCount = document.querySelectorAll('.social-input:not([value=""])').length;
+            badgeEl.textContent = `${socialCount}/?`;
+        } else {
+            const filled = fields.filter(id => document.getElementById(id)?.value.trim()).length;
+            badgeEl.textContent = `${filled}/${fields.length}`;
+        }
+    });
+}
+
+function setupAccordionBehavior() {
+    const accordions = document.querySelectorAll('.accordion');
+    accordions.forEach(acc => {
+        acc.addEventListener('toggle', (e) => {
+            if (e.target.open) {
+                accordions.forEach(other => { if (other !== e.target && other.open) other.open = false; });
+                setTimeout(() => {
+                    const summary = e.target.querySelector('summary');
+                    if (summary) {
+                        const offset = summary.getBoundingClientRect().top + window.scrollY - 100;
+                        window.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+                    }
+                }, 50);
+            }
+        });
+    });
+}
+
+function initializeApp() {
+    addPhoneRow();
+    initColorPresets();
+    setupAccordionBehavior();
+    updateAccordionBadges();
+    addPhoneValidation();
+    addEmailValidation();
+    initSocials();
+    updateLibraryBadge();
+    initSocialQRGrid();
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+// ================================================================
+// BRAND: LOGO + COLOR
+// ================================================================
+let currentLogoDataUrl = null;
+let currentBrandColor  = null;
+const BRAND_PRESETS = ['#ea1585','#06b2e3','#45e0a8','#ccf32e','#f59e0b','#8b5cf6','#111111'];
+
+function initColorPresets() {
+    const wrap = document.getElementById('color-presets');
+    if (!wrap) return;
+    wrap.innerHTML = BRAND_PRESETS.map(c =>
+        `<button type="button" class="color-swatch" style="background:${c};" onclick="handleColorChange('${c}')" title="${c}"></button>`
+    ).join('');
+}
+
+function handleLogoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Selecciona una imagen válida.','warn'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+            const size = 300, canvas = document.createElement('canvas');
+            canvas.width = canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,size,size);
+            const scale = Math.min(size/img.width, size/img.height) * 0.9;
+            const w = img.width*scale, h = img.height*scale;
+            ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);
+            currentLogoDataUrl = canvas.toDataURL('image/png');
+            updateLogoPreview(); updatePreview();
+            showToast('Logo cargado. Se incluirá en el centro del QR.','success');
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function updateLogoPreview() {
+    const preview = document.getElementById('logo-preview');
+    const removeBtn = document.getElementById('btn-remove-logo');
+    if (!preview) return;
+    if (currentLogoDataUrl) {
+        preview.innerHTML = `<img src="${currentLogoDataUrl}" alt="Logo">`;
+        if (removeBtn) removeBtn.style.display = 'inline-flex';
+    } else {
+        preview.innerHTML = `<i class="fa-regular fa-image"></i>`;
+        if (removeBtn) removeBtn.style.display = 'none';
+    }
+}
+
+function removeLogo() {
+    currentLogoDataUrl = null;
+    const input = document.getElementById('v_logo_input');
+    if (input) input.value = '';
+    updateLogoPreview(); updatePreview();
+    showToast('Logo eliminado.','info');
+}
+
+function handleColorChange(color) {
+    currentBrandColor = color;
+    const ci = document.getElementById('v_brand_color');
+    if (ci) ci.value = color;
+    applyClientColor(color);
+}
+
+function resetBrandColor() {
+    currentBrandColor = null;
+    const ci = document.getElementById('v_brand_color');
+    if (ci) ci.value = '#06b2e3';
+    applyClientColor(null);
+    showToast('Color de marca restablecido.','info');
+}
+
+function applyClientColor(color) {
+    if (color) document.documentElement.style.setProperty('--client-accent', color);
+    else document.documentElement.style.removeProperty('--client-accent');
+}
+
+// ================================================================
+// SOCIAL NETWORKS DATA
+// ================================================================
+const socialNetworks = [
+    { id:'instagram', icon:'fa-instagram',   color:'#E1306C', placeholder:'https://instagram.com/usuario' },
+    { id:'facebook',  icon:'fa-facebook-f',  color:'#1877F2', placeholder:'https://facebook.com/usuario' },
+    { id:'twitter',   icon:'fa-x-twitter',   color:'#111111', placeholder:'https://x.com/usuario' },
+    { id:'linkedin',  icon:'fa-linkedin-in', color:'#0A66C2', placeholder:'https://linkedin.com/in/usuario' },
+    { id:'youtube',   icon:'fa-youtube',     color:'#FF0000', placeholder:'https://youtube.com/@usuario' },
+    { id:'tiktok',    icon:'fa-tiktok',      color:'#111111', placeholder:'https://tiktok.com/@usuario' },
+    { id:'github',    icon:'fa-github',      color:'#333333', placeholder:'https://github.com/usuario' },
+    { id:'whatsapp',  icon:'fa-whatsapp',    color:'#25D366', placeholder:'https://wa.me/52...' },
+    { id:'spotify',   icon:'fa-spotify',     color:'#1DB954', placeholder:'https://open.spotify.com/user/...' },
+    { id:'twitch',    icon:'fa-twitch',      color:'#9146FF', placeholder:'https://twitch.tv/usuario' }
+];
+
+// ================================================================
+// TAB: PREVIEW / QR
+// ================================================================
+function switchTab(tab) {
+    const bg          = document.getElementById('toggle-bg');
+    const btnPreview  = document.getElementById('btn-tab-preview');
+    const btnQr       = document.getElementById('btn-tab-qr');
+    const viewPreview = document.getElementById('view-preview');
+    const viewQr      = document.getElementById('view-qr');
+    if (tab === 'qr' && btnQr.disabled) return;
+    if (tab === 'preview') {
+        bg.style.transform = 'translateX(0)';
+        btnPreview.classList.add('active'); btnQr.classList.remove('active');
+        viewPreview.classList.add('active'); viewQr.classList.remove('active');
+    } else {
+        bg.style.transform = 'translateX(100%)';
+        btnPreview.classList.remove('active'); btnQr.classList.add('active');
+        viewPreview.classList.remove('active'); viewQr.classList.add('active');
+    }
+}
+
+// ================================================================
+// LIVE PREVIEW
+// ================================================================
+function updatePreview() {
+    const n      = document.getElementById('v_nombre').value.trim();
+    const a      = document.getElementById('v_apellidos').value.trim();
+    const emp    = document.getElementById('v_empresa').value.trim();
+    const puesto = document.getElementById('v_puesto').value.trim();
+    const phones = getPhoneEntries();
+    const emails = getEmailEntries();
+    const tel    = phones[0] ? phones[0].value : '';
+    const email  = emails[0] ? emails[0].value : '';
+    const web    = document.getElementById('v_web').value.trim();
+    const nota   = document.getElementById('v_nota').value.trim();
+    const calle  = document.getElementById('v_calle').value.trim();
+    const ciudad = document.getElementById('v_ciudad').value.trim();
+    const estado = document.getElementById('v_estado').value.trim();
+
+    if (n) document.getElementById('fg-nombre').classList.remove('field-error');
+    if (tel) document.getElementById('fg-telefonos').classList.remove('field-error');
+
+    const emptyHint = document.getElementById('pv-empty-hint');
+    if (emptyHint) emptyHint.style.display = (n||a||tel||email||emp||puesto) ? 'none' : 'block';
+
+    updateAccordionBadges();
+
+    const btnQr   = document.getElementById('btn-tab-qr');
+    const lockIcon = document.getElementById('qr-lock-icon');
+    if (!btnQr.disabled) {
+        btnQr.disabled = true;
+        if (lockIcon) lockIcon.style.display = 'inline-block';
+        document.getElementById('download-btn').style.display = 'none';
+        if (btnQr.classList.contains('active')) switchTab('preview');
+    }
+
+    // Avatar
+    const initials = ((n.charAt(0)||'')+(a.charAt(0)||'')).toUpperCase()||'JD';
+    document.getElementById('pv-avatar').innerText = initials;
+
+    // Name + job
+    document.getElementById('pv-name').innerText = `${n} ${a}`.trim() || 'John Doe';
+    let jobText = puesto && emp ? `${puesto} en ${emp}` : puesto || emp;
+    const pvJob = document.getElementById('pv-job');
+    pvJob.innerText = jobText;
+    pvJob.style.display = jobText ? 'block' : 'none';
+
+    // Quick actions
+    let qa = '';
+    if (tel)   qa += `<div class="pv-action-btn"><i class="fa-solid fa-phone"></i></div>`;
+    if (email) qa += `<div class="pv-action-btn"><i class="fa-solid fa-envelope"></i></div>`;
+    if (web)   qa += `<div class="pv-action-btn"><i class="fa-solid fa-globe"></i></div>`;
+    document.getElementById('pv-quick-actions').innerHTML = qa;
+
+    // Contact card
+    let cc = '';
+    phones.forEach(p => cc += generateContactRow('fa-phone', p.type, p.value));
+    emails.forEach(e => cc += generateContactRow('fa-envelope', e.type, e.value));
+    if (web) cc += generateContactRow('fa-globe','Sitio Web',web);
+    const addr = [calle,ciudad,estado].filter(Boolean);
+    if (addr.length) cc += generateContactRow('fa-location-dot','Dirección',addr.join(', '));
+    if (nota) cc += generateContactRow('fa-align-left','Biografía',nota);
+    const ccEl = document.getElementById('pv-contact-card');
+    ccEl.innerHTML = cc;
+    ccEl.style.display = cc ? 'flex' : 'none';
+
+    // Socials
+    const pvSocial = document.getElementById('pv-social-list');
+    pvSocial.innerHTML = '';
+    document.querySelectorAll('.social-input').forEach(input => {
+        const net = socialNetworks.find(s => s.id === input.dataset.network);
+        if (!net) return;
+        const url = input.value.trim();
+        const user = url ? url.replace(/\/$/,'').split('/').pop().split('?')[0] : 'Enlace añadido';
+        pvSocial.innerHTML += `
+            <div class="pv-social-item">
+                <div class="pv-social-icon" style="background:${net.color}"><i class="fa-brands ${net.icon}"></i></div>
+                <div class="pv-social-text-container">
+                    <div class="pv-social-name">${net.id.charAt(0).toUpperCase()+net.id.slice(1)}</div>
+                    <div class="pv-social-user">${user}</div>
+                </div>
+                <i class="fa-solid fa-angle-right pv-social-arrow"></i>
+            </div>`;
+    });
+}
+
+function generateContactRow(iconClass, label, value) {
+    return `<div class="pv-contact-item">
+        <div class="pv-contact-icon"><i class="fa-solid ${iconClass}"></i></div>
+        <div class="pv-contact-content">
+            <div class="pv-contact-label">${label}</div>
+            <div class="pv-contact-value">${value}</div>
+        </div>
+    </div>`;
+}
+
+document.querySelectorAll('.container input, .container textarea').forEach(el => {
+    el.addEventListener('input', updatePreview);
+});
+
+// ================================================================
+// MULTI-FIELDS: PHONES + EMAILS
+// ================================================================
+const PHONE_TYPES = ['Móvil','Oficina','Casa','Fax','Otro'];
+const EMAIL_TYPES = ['Personal','Trabajo','Otro'];
+let phoneRowCounter = 0, emailRowCounter = 0;
+
+function addPhoneRow(type='Móvil', value='') {
+    const container = document.getElementById('phones-container');
+    const id = `phone-${phoneRowCounter++}`;
+    const isFirst = container.children.length === 0;
+    const row = document.createElement('div');
+    row.className = 'multi-row' + (isFirst ? ' primary-row' : '');
+    row.id = id;
+    row.innerHTML = `
+        <select class="phone-type">${PHONE_TYPES.map(t=>`<option ${t===type?'selected':''}>${t}</option>`).join('')}</select>
+        <input type="tel" class="phone-value" placeholder="+52 555 000 0000" value="${escapeAttr(value)}">
+        <button type="button" class="btn-delete" title="Eliminar" onclick="removeMultiRow('${id}','phone')"><i class="fa-solid fa-trash"></i></button>`;
+    container.appendChild(row);
+    row.querySelector('.phone-value').addEventListener('input', updatePreview);
+    row.querySelector('.phone-type').addEventListener('change', updatePreview);
+    if (!value) setTimeout(()=>row.querySelector('.phone-value').focus(),50);
+    updateAccordionBadges();
+    addPhoneValidation();
+    return row;
+}
+
+function addEmailRow(type='Personal', value='') {
+    const container = document.getElementById('emails-container');
+    const id = `email-${emailRowCounter++}`;
+    const row = document.createElement('div');
+    row.className = 'multi-row';
+    row.id = id;
+    row.innerHTML = `
+        <select class="email-type">${EMAIL_TYPES.map(t=>`<option ${t===type?'selected':''}>${t}</option>`).join('')}</select>
+        <input type="email" class="email-value" placeholder="john.doe@ejemplo.com" value="${escapeAttr(value)}">
+        <button type="button" class="btn-delete" title="Eliminar" onclick="removeMultiRow('${id}','email')"><i class="fa-solid fa-trash"></i></button>`;
+    container.appendChild(row);
+    row.querySelector('.email-value').addEventListener('input', updatePreview);
+    row.querySelector('.email-type').addEventListener('change', updatePreview);
+    if (!value) setTimeout(()=>row.querySelector('.email-value').focus(),50);
+    updateAccordionBadges();
+    addEmailValidation();
+    return row;
+}
+
+function removeMultiRow(id, kind) {
+    const row = document.getElementById(id);
+    if (row) row.remove();
+    if (kind==='phone') {
+        document.getElementById('fg-telefonos').classList.remove('field-error');
+        const pc = document.getElementById('phones-container');
+        if (pc.children.length===0) addPhoneRow();
+        else pc.children[0].classList.add('primary-row');
+    }
+    updatePreview(); updateAccordionBadges();
+}
+
+function getPhoneEntries() {
+    return Array.from(document.querySelectorAll('#phones-container .multi-row')).map(row=>({
+        type: row.querySelector('.phone-type').value,
+        value: row.querySelector('.phone-value').value.trim()
+    })).filter(p=>p.value);
+}
+
+function getEmailEntries() {
+    return Array.from(document.querySelectorAll('#emails-container .multi-row')).map(row=>({
+        type: row.querySelector('.email-type').value,
+        value: row.querySelector('.email-value').value.trim()
+    })).filter(e=>e.value);
+}
+
+function clearPhoneRows() { document.getElementById('phones-container').innerHTML=''; }
+function clearEmailRows()  { document.getElementById('emails-container').innerHTML=''; }
+function escapeAttr(str)   { return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ================================================================
+// TEMPLATES
+// ================================================================
+let currentTemplate = 'minimalista';
+const TEMPLATES = {
+    minimalista: { name:'Minimalista', accentColor:'#06b2e3' },
+    corporativo:  { name:'Corporativo',  accentColor:'#06b2e3' },
+    creativo:     { name:'Creativo',     accentColor:'#ccf32e' }
+};
+
+function openTemplatesModal()  { document.getElementById('templates-overlay').classList.add('open'); }
+function closeTemplatesModal() { document.getElementById('templates-overlay').classList.remove('open'); }
+function selectTemplate(tpl) {
+    currentTemplate = tpl;
+    showToast(`Plantilla "${TEMPLATES[tpl].name}" seleccionada.`,'success');
+    closeTemplatesModal(); updatePreview();
+}
+
+// ================================================================
+// VALIDATION
+// ================================================================
+function validatePhone(phone) {
+    return /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.replace(/\s/g,''));
+}
+function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+function validateURL(url) {
+    if (!url) return true;
+    try { new URL(url.startsWith('http')?url:`https://${url}`); return true; } catch(e) { return false; }
+}
+
+function addPhoneValidation() {
+    document.querySelectorAll('#phones-container .phone-value').forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value && !validatePhone(this.value)) this.parentElement.classList.add('field-warning');
+            else this.parentElement.classList.remove('field-warning');
+        });
+        input.addEventListener('focus', function() { this.parentElement.classList.remove('field-warning'); });
+    });
+}
+
+function addEmailValidation() {
+    document.querySelectorAll('#emails-container .email-value').forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value && !validateEmail(this.value)) this.parentElement.classList.add('field-warning');
+            else this.parentElement.classList.remove('field-warning');
+        });
+        input.addEventListener('focus', function() { this.parentElement.classList.remove('field-warning'); });
+    });
+}
+
+// ================================================================
+// VERSION HISTORY
+// ================================================================
+const VERSIONS_KEY = 'emd_vcard_versions_v1';
+function saveCardVersion(cardId) {
+    const data = collectFormData();
+    const snapshot = { id:`v_${Date.now()}`, timestamp:new Date().toISOString(), data };
+    let versions = JSON.parse(localStorage.getItem(`${VERSIONS_KEY}_${cardId}`)||'[]');
+    versions.unshift(snapshot);
+    versions = versions.slice(0,10);
+    localStorage.setItem(`${VERSIONS_KEY}_${cardId}`,JSON.stringify(versions));
+    return snapshot;
+}
+function getCardVersions(cardId) { return JSON.parse(localStorage.getItem(`${VERSIONS_KEY}_${cardId}`)||'[]'); }
+function restoreCardVersion(cardId, versionId) {
+    const v = getCardVersions(cardId).find(v=>v.id===versionId);
+    if (!v) return;
+    populateForm(v.data); showToast('Versión restaurada.','success');
+}
+
+// ================================================================
+// EXPORT
+// ================================================================
+function openExportModal() {
+    if (!document.getElementById('v_nombre').value.trim()) {
+        showToast('Agrega al menos un nombre antes de exportar.','warn'); return;
+    }
+    document.getElementById('export-overlay').classList.add('open');
+}
+function closeExportModal() { document.getElementById('export-overlay').classList.remove('open'); }
+
+function exportAsVCF() {
+    const data = collectFormData();
+    const blob = new Blob([buildVCardString(data)],{type:'text/vcard;charset=utf-8'});
+    downloadBlob(blob, buildFileName('vcf','vcard'));
+    showToast('vCard descargada.','success'); closeExportModal();
+}
+
+function exportAsCSV() {
+    const data = collectFormData();
+    const headers = ['Nombre','Apellidos','Empresa','Puesto','Teléfono','Email','Web','Dirección'];
+    const values  = [data.nombre,data.apellidos,data.empresa,data.puesto,
+                     data.phones[0]?.value||'',data.emails[0]?.value||'',data.web,
+                     `${data.calle}, ${data.ciudad}, ${data.estado}`];
+    const csv = [headers,values].map(r=>r.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}), buildFileName('csv','vcard'));
+    showToast('CSV descargado.','success'); closeExportModal();
+}
+
+async function exportAsHTML() {
+    const data = collectFormData();
+    const nombre = data.nombre||'Contacto', apellidos = data.apellidos||'';
+    const phones = data.phones.map(p=>p.value).join(', ');
+    const emails = data.emails.map(e=>e.value).join(', ');
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${nombre} ${apellidos}</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<\u0073tyle>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,sans-serif;background:linear-gradient(135deg,#ea1585,#06b2e3);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}.card{background:#fff;border-radius:20px;padding:36px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}.avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#ea1585,#c0106e);color:#fff;display:flex;justify-content:center;align-items:center;font-size:1.8rem;font-weight:700;margin:0 auto 18px}h1{text-align:center;font-size:1.6rem;color:#1d1d1f;margin-bottom:6px;letter-spacing:-.3px}.subtitle{text-align:center;color:#6e6e73;margin-bottom:26px;font-size:.9rem}.item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #eee}.item:last-child{border-bottom:none}.icon{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ea1585,#c0106e);color:#fff;display:flex;justify-content:center;align-items:center;flex-shrink:0;font-size:.85rem}.info{flex:1}.label{font-size:.7rem;color:#8e8e93;text-transform:uppercase;letter-spacing:.3px}.value{font-weight:600;color:#1d1d1f;word-break:break-word}a{color:#ea1585;text-decoration:none}a:hover{text-decoration:underline}<\/style>
+</head><body><div class="card">
+<div class="avatar">${(nombre.charAt(0)+apellidos.charAt(0)).toUpperCase()}</div>
+<h1>${nombre} ${apellidos}</h1>
+<p class="subtitle">${data.puesto||data.empresa||''}</p>
+${phones?`<div class="item"><div class="icon"><i class="fa-solid fa-phone"></i></div><div class="info"><div class="label">Teléfono</div><div class="value">${phones}</div></div></div>`:''}
+${emails?`<div class="item"><div class="icon"><i class="fa-solid fa-envelope"></i></div><div class="info"><div class="label">Email</div><div class="value"><a href="mailto:${data.emails[0]?.value}">${emails}</a></div></div></div>`:''}
+${data.web?`<div class="item"><div class="icon"><i class="fa-solid fa-globe"></i></div><div class="info"><div class="label">Sitio Web</div><div class="value"><a href="${data.web}" target="_blank">${data.web}</a></div></div></div>`:''}
+${data.empresa?`<div class="item"><div class="icon"><i class="fa-solid fa-building"></i></div><div class="info"><div class="label">Empresa</div><div class="value">${data.empresa}</div></div></div>`:''}
+</div></body></html>`;
+    downloadBlob(new Blob([html],{type:'text/html;charset=utf-8'}), buildFileName('html','vcard'));
+    showToast('HTML descargado.','success'); closeExportModal();
+}
+
+async function exportAsPDF() {
+    const data = collectFormData();
+    showToast('Generando PDF...','info');
+    try {
+        if (typeof html2pdf === 'undefined') { showToast('Librería PDF no disponible.','warn'); return; }
+        const nombre = data.nombre||'Contacto';
+        const initials = ((data.nombre||'').charAt(0)+(data.apellidos||'').charAt(0)).toUpperCase()||'CD';
+        const phones = data.phones.map(p=>p.value).join(', ');
+        const emails = data.emails.map(e=>e.value).join(', ');
+        const el = document.createElement('div');
+        el.innerHTML = `<div style="width:85mm;height:55mm;padding:8mm;font-family:-apple-system,sans-serif;background:#fff;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:22mm;height:22mm;border-radius:50%;background:linear-gradient(135deg,#ea1585,#c0106e);color:#fff;display:flex;justify-content:center;align-items:center;font-size:12px;font-weight:700;flex-shrink:0;">${initials}</div>
+                <div style="flex:1;">
+                    <p style="font-size:11pt;font-weight:700;color:#1d1d1f;margin:0;">${nombre} ${data.apellidos||''}</p>
+                    <p style="font-size:8pt;color:#6e6e73;margin:2px 0 0;">${data.puesto||data.empresa||''}</p>
+                    <div style="font-size:7pt;color:#333;margin-top:8px;line-height:1.4;">
+                        ${phones?`<span style="display:block;">📱 ${phones}</span>`:''}
+                        ${emails?`<span style="display:block;">✉️ ${emails}</span>`:''}
+                        ${data.web?`<span style="display:block;">🌐 ${data.web}</span>`:''}
+                    </div>
+                </div>
+            </div>
+            <div style="font-size:6pt;color:#8e8e93;border-top:1px solid #eee;padding-top:4px;">EMD Publicidad | Generado con vCard Pro</div>
+        </div>`;
+        html2pdf().set({ margin:0, filename:buildFileName('pdf','vcard'), html2canvas:{scale:2}, jsPDF:{format:[85,55],unit:'mm',orientation:'landscape'} }).from(el).save();
+        showToast('PDF descargado.','success');
+    } catch(e) { showToast('Error al generar PDF.','warn'); }
+    closeExportModal();
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = filename;
+    document.body.appendChild(link); link.click();
+    document.body.removeChild(link); URL.revokeObjectURL(url);
+}
+
+function buildFileName(ext, suffix='vcard') {
+    let nombre='', apellidos='';
+    if (currentMode==='social') {
+        if (selectedSocialNetwork?.type==='whatsapp-chat') {
+            nombre = document.getElementById('wa-chat-nombre').value.trim();
+            if (nombre) return slugify(nombre)+`-whatsapp.${ext}`;
+            const tel = document.getElementById('wa-chat-telefono').value.trim().replace(/\D/g,'');
+            return `whatsapp-${tel||'chat'}.${ext}`;
+        }
+        if (selectedSocialNetwork) {
+            const val = document.getElementById('social-qr-value').value.trim();
+            const clean = val.startsWith('@')?val.slice(1):val;
+            return (clean?`${slugify(clean)}-${selectedSocialNetwork.id}`:selectedSocialNetwork.id)+`.${ext}`;
+        }
+        return `qr.${ext}`;
+    }
+    nombre    = document.getElementById('v_nombre').value.trim();
+    apellidos = document.getElementById('v_apellidos').value.trim();
+    const parts = [nombre,apellidos].filter(Boolean).map(slugify).join('-');
+    return parts ? `${parts}-${suffix}.${ext}` : `contacto-${suffix}.${ext}`;
+}
+
+function slugify(str) {
+    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
+}
+
+const script = document.createElement('script');
+script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+document.head.appendChild(script);
+
+// ================================================================
+// SOCIAL NETWORK BUTTONS
+// ================================================================
+function initSocials() {
+    const grid = document.getElementById('social-grid');
+    socialNetworks.forEach(net => {
+        const btn = document.createElement('button');
+        btn.className = 'social-btn'; btn.id = `btn-social-${net.id}`;
+        btn.innerHTML = `<i class="fa-brands ${net.icon}"></i>`; btn.title = `Añadir ${net.id}`;
+        btn.onclick = () => {
+            if (!btn.classList.contains('disabled')) {
+                document.getElementById('social-grid').parentElement.parentElement.open = true;
+                addSocialRow(net); btn.classList.add('disabled'); updatePreview();
+            }
+        };
+        grid.appendChild(btn);
+    });
+    updatePreview();
+}
+
+function addSocialRow(net, value='') {
+    const container = document.getElementById('active-socials-container');
+    const row = document.createElement('div');
+    row.className = 'active-social-row'; row.id = `row-social-${net.id}`;
+    const nameLabel = net.id.charAt(0).toUpperCase()+net.id.slice(1);
+    row.innerHTML = `
+        <div class="active-social-icon" style="background:${net.color}"><i class="fa-brands ${net.icon}"></i></div>
+        <div class="form-group"><label>URL de ${nameLabel}</label>
+            <input type="url" class="social-input" data-network="${net.id}" value="${value}" placeholder="${net.placeholder}">
+        </div>
+        <button class="btn-delete" title="Eliminar" onclick="removeSocialRow('${net.id}')"><i class="fa-solid fa-trash"></i></button>`;
+    container.appendChild(row);
+    row.querySelector('input').addEventListener('input', updatePreview);
+    if (!value) setTimeout(()=>row.querySelector('input').focus(),50);
+    updateAccordionBadges();
+}
+
+function removeSocialRow(id) {
+    const row = document.getElementById(`row-social-${id}`);
+    if (row) row.remove();
+    const btn = document.getElementById(`btn-social-${id}`);
+    if (btn) btn.classList.remove('disabled');
+    updatePreview(); updateAccordionBadges();
+}
+
+// ================================================================
+// QR GENERATION
+// ================================================================
+const PHONE_TYPE_MAP = { 'Móvil':'CELL,VOICE','Oficina':'WORK,VOICE','Casa':'HOME,VOICE','Fax':'FAX','Otro':'VOICE' };
+const EMAIL_TYPE_MAP = { 'Personal':'HOME,INTERNET','Trabajo':'WORK,INTERNET','Otro':'INTERNET' };
+
+function buildVCardString(data) {
+    let vc = "BEGIN:VCARD\nVERSION:3.0\n";
+    vc += `N:${data.apellidos||''};${data.nombre||''};;;\n`;
+    vc += `FN:${`${data.nombre||''} ${data.apellidos||''}`.trim()}\n`;
+    (data.phones||[]).forEach((p,i) => vc += `TEL;TYPE=${PHONE_TYPE_MAP[p.type]||'VOICE'}${i===0?',PREF':''}:${p.value}\n`);
+    if (data.empresa) vc += `ORG:${data.empresa}\n`;
+    if (data.puesto)  vc += `TITLE:${data.puesto}\n`;
+    (data.emails||[]).forEach((e,i) => vc += `EMAIL;TYPE=${EMAIL_TYPE_MAP[e.type]||'INTERNET'}${i===0?',PREF':''}:${e.value}\n`);
+    if (data.web)  vc += `URL:${data.web}\n`;
+    if (data.nota) vc += `NOTE:${data.nota}\n`;
+    if (data.calle||data.ciudad||data.estado||data.zip||data.pais)
+        vc += `ADR;TYPE=WORK:;;${data.calle||''};${data.ciudad||''};${data.estado||''};${data.zip||''};${data.pais||''}\n`;
+    let idx=1;
+    (data.socials||[]).forEach(s => {
+        if (!s.value) return;
+        const user = s.value.replace(/\/$/,'').split('/').pop().split('?')[0];
+        const label = s.network.charAt(0).toUpperCase()+s.network.slice(1);
+        vc += `X-SOCIALPROFILE;type=${s.network.toLowerCase()};x-user=${user}:${s.value}\n`;
+        vc += `item${idx}.URL:${s.value}\nitem${idx}.X-ABLabel:${label}\n`;
+        idx++;
+    });
+    vc += "END:VCARD";
+    return vc;
+}
+
+function loadImageAsync(src) {
+    return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.src=src;});
+}
+
+function roundRectPath(ctx,x,y,w,h,r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+
+async function renderQRCanvasWithLogo(vcardString, logoDataUrl, targetCanvas) {
+    const canvas = targetCanvas || document.createElement('canvas');
+    const hasLogo = !!logoDataUrl;
+    new QRious({ element:canvas, value:vcardString, size:512, level:hasLogo?'H':'L', background:'#ffffff', foreground:'#000000' });
+    if (hasLogo) {
+        try {
+            const img = await loadImageAsync(logoDataUrl);
+            const ctx = canvas.getContext('2d');
+            const logoSize = canvas.width*0.2, cx=canvas.width/2, cy=canvas.height/2;
+            const pad = logoSize*0.22;
+            ctx.save();
+            roundRectPath(ctx,cx-logoSize/2-pad,cy-logoSize/2-pad,logoSize+pad*2,logoSize+pad*2,14);
+            ctx.fillStyle='#ffffff'; ctx.fill(); ctx.restore();
+            ctx.drawImage(img,cx-logoSize/2,cy-logoSize/2,logoSize,logoSize);
+        } catch(e) {}
+    }
+    return canvas;
+}
+
+async function generarQR() {
+    const n = document.getElementById('v_nombre').value.trim();
+    const phones = getPhoneEntries();
+    document.getElementById('fg-nombre').classList.remove('field-error');
+    document.getElementById('fg-telefonos').classList.remove('field-error');
+    if (!n || phones.length===0) {
+        document.getElementById('acc-principales').open = true;
+        if (!n) document.getElementById('fg-nombre').classList.add('field-error');
+        if (phones.length===0) document.getElementById('fg-telefonos').classList.add('field-error');
+        showToast('El Nombre y al menos un Teléfono son obligatorios.','warn');
+        const first = !n ? document.getElementById('v_nombre') : document.querySelector('#phones-container .phone-value');
+        first.focus({preventScroll:false});
+        first.scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+    }
+    const btn  = document.getElementById('btn-generar');
+    const btnM = document.getElementById('btn-generar-mobile');
+    [btn,btnM].forEach(b=>b&&b.classList.add('loading'));
+    const data  = collectFormData();
+    const vcard = buildVCardString(data);
+    setTimeout(async ()=>{
+        try {
+            const canvas = document.getElementById('qr-canvas');
+            canvas.getContext('2d').clearRect(0,0,512,512);
+            await renderQRCanvasWithLogo(vcard, data.logo, canvas);
+            const btnQr   = document.getElementById('btn-tab-qr');
+            const lockIcon = document.getElementById('qr-lock-icon');
+            btnQr.disabled = false;
+            if (lockIcon) lockIcon.style.display='none';
+            document.getElementById('download-btn').style.display='block';
+            const qrEl = document.getElementById('qr-result');
+            qrEl.classList.remove('qr-pop'); void qrEl.offsetWidth; qrEl.classList.add('qr-pop');
+            switchTab('qr'); showToast('¡Código QR generado con éxito!','success');
+            if (window.innerWidth<=900) setTimeout(()=>document.querySelector('.preview-panel').scrollIntoView({behavior:'smooth'}),100);
+        } catch(e) { showToast('Error al generar el código.','warn'); }
+        finally { [btn,btnM].forEach(b=>b&&b.classList.remove('loading')); }
+    }, 350);
+}
+
+function compartirQR() {
+    const canvas = document.getElementById('qr-canvas');
+    const filename = buildFileName('png','vcard');
+    const nombre = document.getElementById('v_nombre').value.trim()||'Contacto';
+    canvas.toBlob(async (blob)=>{
+        const file = new File([blob],filename,{type:'image/png'});
+        if (navigator.share && navigator.canShare?.({files:[file]})) {
+            try { await navigator.share({files:[file],title:`Contacto de ${nombre}`,text:'Escanea para guardar mi contacto.'}); }
+            catch(err) { if(err.name!=='AbortError') showToast('No se pudo compartir.','warn'); }
+        } else { descargarQR(); showToast('Descargado (compartir no disponible en este navegador).','info'); }
+    },'image/png');
+}
+
+function descargarQR() {
+    const canvas = document.getElementById('qr-canvas');
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = buildFileName('png','vcard');
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+}
+
+// ================================================================
+// LIBRARY (localStorage)
+// ================================================================
+const LIBRARY_KEY = 'emd_vcard_library_v1';
+let currentEditingId = null;
+
+function getLibrary() {
+    try { return JSON.parse(localStorage.getItem(LIBRARY_KEY)||'[]'); } catch(e) { return []; }
+}
+function setLibrary(cards) { localStorage.setItem(LIBRARY_KEY,JSON.stringify(cards)); updateLibraryBadge(); }
+function updateLibraryBadge() {
+    const b = document.getElementById('library-count');
+    if (b) b.textContent = getLibrary().length;
+}
+
+function collectFormData() {
+    return {
+        nombre: document.getElementById('v_nombre').value.trim(),
+        apellidos: document.getElementById('v_apellidos').value.trim(),
+        empresa: document.getElementById('v_empresa').value.trim(),
+        puesto: document.getElementById('v_puesto').value.trim(),
+        web: document.getElementById('v_web').value.trim(),
+        nota: document.getElementById('v_nota').value.trim(),
+        calle: document.getElementById('v_calle').value.trim(),
+        ciudad: document.getElementById('v_ciudad').value.trim(),
+        estado: document.getElementById('v_estado').value.trim(),
+        zip: document.getElementById('v_zip').value.trim(),
+        pais: document.getElementById('v_pais').value.trim(),
+        phones: getPhoneEntries(), emails: getEmailEntries(),
+        socials: Array.from(document.querySelectorAll('.social-input')).map(i=>({network:i.dataset.network,value:i.value.trim()})).filter(s=>s.value),
+        logo: currentLogoDataUrl, brandColor: currentBrandColor
+    };
+}
+
+function populateForm(data) {
+    document.getElementById('v_nombre').value    = data.nombre||'';
+    document.getElementById('v_apellidos').value = data.apellidos||'';
+    document.getElementById('v_empresa').value   = data.empresa||'';
+    document.getElementById('v_puesto').value    = data.puesto||'';
+    document.getElementById('v_web').value       = data.web||'';
+    document.getElementById('v_nota').value      = data.nota||'';
+    document.getElementById('v_calle').value     = data.calle||'';
+    document.getElementById('v_ciudad').value    = data.ciudad||'';
+    document.getElementById('v_estado').value    = data.estado||'';
+    document.getElementById('v_zip').value       = data.zip||'';
+    document.getElementById('v_pais').value      = data.pais||'';
+    clearPhoneRows();
+    (data.phones?.length?data.phones:[{type:'Móvil',value:''}]).forEach(p=>addPhoneRow(p.type,p.value));
+    clearEmailRows();
+    (data.emails||[]).forEach(e=>addEmailRow(e.type,e.value));
+    document.getElementById('active-socials-container').innerHTML='';
+    document.querySelectorAll('.social-btn').forEach(b=>b.classList.remove('disabled'));
+    (data.socials||[]).forEach(s=>{
+        const net=socialNetworks.find(n=>n.id===s.network);
+        if(net){addSocialRow(net,s.value);document.getElementById(`btn-social-${net.id}`).classList.add('disabled');}
+    });
+    currentLogoDataUrl = data.logo||null; currentBrandColor = data.brandColor||null;
+    updateLogoPreview();
+    const ci = document.getElementById('v_brand_color');
+    if (ci) ci.value = currentBrandColor||'#06b2e3';
+    applyClientColor(currentBrandColor);
+    document.getElementById('btn-tab-qr').disabled = true;
+    const li = document.getElementById('qr-lock-icon');
+    if(li) li.style.display='inline-block';
+    document.getElementById('download-btn').style.display='none';
+    switchTab('preview'); updatePreview(); updateAccordionBadges();
+}
+
+function setEditingStatus(card) {
+    const statusEl  = document.getElementById('toolbar-status');
+    const statusTxt = document.getElementById('toolbar-status-text');
+    const saveLabel = document.getElementById('btn-guardar-label');
+    if (card) {
+        currentEditingId = card.id;
+        statusEl.classList.add('editing');
+        statusTxt.textContent = `Editando: ${card.nombre} ${card.apellidos}`.trim();
+        saveLabel.textContent = 'Actualizar Tarjeta';
+    } else {
+        currentEditingId = null;
+        statusEl.classList.remove('editing');
+        statusTxt.textContent = 'Tarjeta nueva';
+        saveLabel.textContent = 'Guardar Tarjeta';
+    }
+}
+
+function newCard() {
+    document.querySelectorAll('.container input,.container textarea').forEach(el=>el.value='');
+    clearPhoneRows(); addPhoneRow(); clearEmailRows();
+    document.getElementById('active-socials-container').innerHTML='';
+    document.querySelectorAll('.social-btn').forEach(b=>b.classList.remove('disabled'));
+    currentLogoDataUrl=null; currentBrandColor=null; updateLogoPreview();
+    const ci=document.getElementById('v_brand_color'); if(ci) ci.value='#06b2e3';
+    applyClientColor(null); setEditingStatus(null);
+    document.getElementById('btn-tab-qr').disabled=true;
+    const li=document.getElementById('qr-lock-icon'); if(li) li.style.display='inline-block';
+    document.getElementById('download-btn').style.display='none';
+    switchTab('preview'); updatePreview(); updateAccordionBadges();
+    document.getElementById('v_nombre').focus();
+    showToast('Formulario listo para una tarjeta nueva.','info');
+}
+
+function saveCurrentCard() {
+    const data = collectFormData();
+    if (!data.nombre||data.phones.length===0) {
+        document.getElementById('acc-principales').open=true;
+        if(!data.nombre) document.getElementById('fg-nombre').classList.add('field-error');
+        if(data.phones.length===0) document.getElementById('fg-telefonos').classList.add('field-error');
+        showToast('Agrega al menos Nombre y Teléfono antes de guardar.','warn');
+        return;
+    }
+    const cards = getLibrary(), now = new Date().toISOString();
+    if (currentEditingId) {
+        const idx = cards.findIndex(c=>c.id===currentEditingId);
+        if (idx!==-1) {
+            cards[idx]={...cards[idx],...data,updatedAt:now};
+            setLibrary(cards); setEditingStatus(cards[idx]);
+            showToast('Tarjeta actualizada.','success');
+            renderLibraryList(document.getElementById('library-search').value);
+            return;
+        }
+    }
+    const entry={id:`card_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,createdAt:now,updatedAt:now,...data};
+    cards.unshift(entry); setLibrary(cards); setEditingStatus(entry);
+    showToast('Tarjeta guardada en tu librería.','success');
+}
+
+function openLibrary() {
+    renderLibraryList('');
+    document.getElementById('library-overlay').classList.add('open');
+    document.getElementById('library-search').value='';
+    setTimeout(()=>document.getElementById('library-search').focus(),100);
+}
+function closeLibrary() { document.getElementById('library-overlay').classList.remove('open'); }
+
+function renderLibraryList(filterText='') {
+    const cards    = getLibrary();
+    const filtered = cards.filter(c=>`${c.nombre} ${c.apellidos} ${c.empresa}`.toLowerCase().includes(filterText.trim().toLowerCase()));
+    const listEl   = document.getElementById('library-list');
+    const emptyEl  = document.getElementById('library-empty');
+    updateLibraryBadge();
+    if (cards.length===0) { listEl.innerHTML=''; emptyEl.style.display='flex'; return; }
+    emptyEl.style.display='none';
+    if (filtered.length===0) { listEl.innerHTML=`<div class="modal-empty" style="display:flex;padding:28px 10px;"><i class="fa-solid fa-magnifying-glass"></i><p>Sin resultados</p><span>Intenta con otro nombre o empresa.</span></div>`; return; }
+    listEl.innerHTML = filtered.map(c=>{
+        const initials = ((c.nombre||'').charAt(0)+(c.apellidos||'').charAt(0)).toUpperCase()||'??';
+        const fullName = `${c.nombre||''} ${c.apellidos||''}`.trim()||'Sin nombre';
+        const sub      = [c.puesto,c.empresa].filter(Boolean).join(' · ')||(c.phones?.[0]?.value||'');
+        return `<div class="library-card ${c.id===currentEditingId?'active-editing':''}" onclick="editCard('${c.id}')">
+            <div class="lib-avatar">${initials}</div>
+            <div class="lib-info"><div class="lib-name">${fullName}</div><div class="lib-sub">${sub}</div></div>
+            <div class="lib-actions">
+                <button class="lib-icon-btn duplicate" title="Duplicar" onclick="event.stopPropagation();duplicateCard('${c.id}')"><i class="fa-regular fa-copy"></i></button>
+                <button class="lib-icon-btn delete"    title="Eliminar" onclick="event.stopPropagation();deleteCard('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function editCard(id) {
+    const card = getLibrary().find(c=>c.id===id); if (!card) return;
+    populateForm(card); setEditingStatus(card); closeLibrary();
+    showToast(`Editando la tarjeta de ${card.nombre}.`,'info');
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function duplicateCard(id) {
+    const cards=getLibrary(), orig=cards.find(c=>c.id===id); if(!orig) return;
+    const now=new Date().toISOString();
+    const copy={...orig,id:`card_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+        apellidos:orig.apellidos?`${orig.apellidos} (copia)`:'(copia)',createdAt:now,updatedAt:now};
+    cards.unshift(copy); setLibrary(cards);
+    renderLibraryList(document.getElementById('library-search').value);
+    showToast('Tarjeta duplicada.','success');
+}
+
+function deleteCard(id) {
+    const cards=getLibrary(), card=cards.find(c=>c.id===id); if(!card) return;
+    if(!confirm(`¿Eliminar la tarjeta de ${card.nombre} ${card.apellidos||''}?`)) return;
+    setLibrary(cards.filter(c=>c.id!==id));
+    if(currentEditingId===id) setEditingStatus(null);
+    renderLibraryList(document.getElementById('library-search').value);
+    showToast('Tarjeta eliminada.','info');
+}
+
+document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){closeLibrary();closeBatchModal();closeTemplatesModal();closeExportModal();}
+});
+
+// ================================================================
+// SOCIAL QR MODE
+// ================================================================
+const SOCIAL_QR_NETWORKS = [
+    { id:'whatsapp-chat',name:'WhatsApp Chat',icon:'fa-brands fa-whatsapp',color:'#25D366',gradient:'linear-gradient(135deg,#25D366,#128C7E)',type:'whatsapp-chat',hint:'Genera un QR que abre un chat directo' },
+    { id:'instagram', name:'Instagram', icon:'fa-brands fa-instagram', color:'#E1306C',gradient:'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)',prefix:'instagram.com/',urlTemplate:v=>`https://instagram.com/${v}`,placeholder:'tu_usuario',hint:'Username sin @' },
+    { id:'facebook',  name:'Facebook',  icon:'fa-brands fa-facebook',  color:'#1877F2',gradient:'linear-gradient(135deg,#1877F2,#0a5dc2)',prefix:'facebook.com/',urlTemplate:v=>`https://facebook.com/${v}`,placeholder:'tu.pagina',hint:'Username de tu página' },
+    { id:'x',         name:'X / Twitter',icon:'fa-brands fa-x-twitter',color:'#000',   gradient:'linear-gradient(135deg,#111,#333)',prefix:'x.com/',urlTemplate:v=>`https://x.com/${v}`,placeholder:'tu_usuario',hint:'Username sin @' },
+    { id:'tiktok',    name:'TikTok',    icon:'fa-brands fa-tiktok',    color:'#010101',gradient:'linear-gradient(135deg,#010101,#EE1D52)',prefix:'tiktok.com/@',urlTemplate:v=>`https://tiktok.com/@${v}`,placeholder:'tu_usuario',hint:'Username sin @' },
+    { id:'linkedin',  name:'LinkedIn',  icon:'fa-brands fa-linkedin',  color:'#0A66C2',gradient:'linear-gradient(135deg,#0A66C2,#004182)',prefix:'linkedin.com/in/',urlTemplate:v=>`https://linkedin.com/in/${v}`,placeholder:'tu-nombre',hint:'Perfil personal' },
+    { id:'youtube',   name:'YouTube',   icon:'fa-brands fa-youtube',   color:'#FF0000',gradient:'linear-gradient(135deg,#FF0000,#cc0000)',prefix:'youtube.com/@',urlTemplate:v=>`https://youtube.com/@${v}`,placeholder:'tu_canal',hint:'Handle de tu canal' },
+    { id:'whatsapp',  name:'WhatsApp',  icon:'fa-brands fa-whatsapp',  color:'#25D366',gradient:'linear-gradient(135deg,#25D366,#128C7E)',prefix:'wa.me/',urlTemplate:v=>`https://wa.me/${v.replace(/[\s\+\-()]/g,'')}`,placeholder:'+52 555 000 0000',hint:'Número con código de país' },
+    { id:'telegram',  name:'Telegram',  icon:'fa-brands fa-telegram',  color:'#229ED9',gradient:'linear-gradient(135deg,#229ED9,#1a7db5)',prefix:'t.me/',urlTemplate:v=>`https://t.me/${v}`,placeholder:'tu_usuario',hint:'Username sin @' },
+    { id:'github',    name:'GitHub',    icon:'fa-brands fa-github',    color:'#24292e',gradient:'linear-gradient(135deg,#24292e,#444d56)',prefix:'github.com/',urlTemplate:v=>`https://github.com/${v}`,placeholder:'tu_usuario',hint:'Username de GitHub' },
+    { id:'pinterest', name:'Pinterest', icon:'fa-brands fa-pinterest', color:'#E60023',gradient:'linear-gradient(135deg,#E60023,#ad081b)',prefix:'pinterest.com/',urlTemplate:v=>`https://pinterest.com/${v}`,placeholder:'tu_usuario',hint:'Username de Pinterest' },
+    { id:'snapchat',  name:'Snapchat',  icon:'fa-brands fa-snapchat',  color:'#FFFC00',gradient:'linear-gradient(135deg,#FFFC00,#f5d800)',prefix:'snapchat.com/add/',urlTemplate:v=>`https://snapchat.com/add/${v}`,placeholder:'tu_usuario',hint:'Username de Snapchat' },
+    { id:'twitch',    name:'Twitch',    icon:'fa-brands fa-twitch',    color:'#9146FF',gradient:'linear-gradient(135deg,#9146FF,#6441a4)',prefix:'twitch.tv/',urlTemplate:v=>`https://twitch.tv/${v}`,placeholder:'tu_canal',hint:'Username de Twitch' },
+    { id:'spotify',   name:'Spotify',   icon:'fa-brands fa-spotify',   color:'#1DB954',gradient:'linear-gradient(135deg,#1DB954,#158a3e)',prefix:'',urlTemplate:v=>v.startsWith('http')?v:`https://open.spotify.com/user/${v}`,placeholder:'Enlace de Spotify',hint:'Pega el enlace completo' },
+    { id:'custom',    name:'URL directa',icon:'fa-solid fa-link',      color:'#ea1585',gradient:'linear-gradient(135deg,#ea1585,#c0106e)',prefix:'',urlTemplate:v=>v.startsWith('http')?v:`https://${v}`,placeholder:'https://tu-sitio.com',hint:'Cualquier URL' },
+];
+
+let selectedSocialNetwork = null;
+let socialQRDebounce = null;
+let currentMode = 'vcard';
+
+function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('panel-vcard').style.display  = mode==='vcard' ?'':'none';
+    document.getElementById('panel-social').style.display = mode==='social'?'':'none';
+    document.getElementById('tab-vcard').classList.toggle('active',  mode==='vcard');
+    document.getElementById('tab-social').classList.toggle('active', mode==='social');
+    document.getElementById('btn-guardar-tarjeta').style.display = mode==='vcard'?'block':'none';
+    document.getElementById('btn-exportar').style.display         = mode==='vcard'?'block':'none';
+    const mg = document.getElementById('btn-guardar-mobile');
+    if(mg) mg.style.display = mode==='vcard'?'':'none';
+    if(mode==='social') {
+        if(selectedSocialNetwork) renderSocialQRInPreview();
+        else {
+            switchTab('preview');
+            document.getElementById('btn-tab-qr').disabled=true;
+            const li=document.getElementById('qr-lock-icon'); if(li) li.style.display='inline-block';
+            document.getElementById('download-btn').style.display='none';
+        }
+    } else { updatePreview(); }
+}
+
+function initSocialQRGrid() {
+    const grid = document.getElementById('social-qr-network-grid');
+    if (!grid) return;
+    grid.innerHTML = SOCIAL_QR_NETWORKS.map(net => {
+        if (net.type==='whatsapp-chat') return `
+            <button type="button" class="social-qr-btn wa-chat-featured" id="sqr-btn-${net.id}" onclick="selectSocialQRNetwork('${net.id}')" title="${net.name}">
+                <i class="${net.icon}"></i>
+                <span class="wa-chat-label"><strong>Mandar a WhatsApp directo</strong><small>QR con nombre, teléfono y mensaje predefinido</small></span>
+                <span class="wa-badge">Nuevo</span>
+            </button>`;
+        return `<button type="button" class="social-qr-btn" id="sqr-btn-${net.id}" onclick="selectSocialQRNetwork('${net.id}')" title="${net.name}" style="border-color:transparent;">
+            <i class="${net.icon}" style="color:${net.color};"></i><span>${net.name}</span></button>`;
+    }).join('');
+}
+
+function selectSocialQRNetwork(netId) {
+    selectedSocialNetwork = SOCIAL_QR_NETWORKS.find(n=>n.id===netId);
+    if (!selectedSocialNetwork) return;
+    SOCIAL_QR_NETWORKS.forEach(n=>{
+        const btn=document.getElementById(`sqr-btn-${n.id}`); if(!btn) return;
+        if(n.id===netId){btn.classList.add('selected');btn.style.borderColor=n.color;btn.style.background=`${n.color}18`;}
+        else{btn.classList.remove('selected');if(n.type!=='whatsapp-chat'){btn.style.borderColor='transparent';btn.style.background='';}}
+    });
+    const wrap=document.getElementById('social-qr-input-wrap');
+    wrap.style.display='block';
+    document.getElementById('social-qr-selected-info').innerHTML=`
+        <div class="social-qr-selected-icon" style="background:${selectedSocialNetwork.gradient}"><i class="${selectedSocialNetwork.icon}"></i></div>
+        <div><div class="social-qr-selected-name">${selectedSocialNetwork.name}</div><div class="social-qr-selected-sub">${selectedSocialNetwork.hint}</div></div>`;
+    const isWa = selectedSocialNetwork.type==='whatsapp-chat';
+    document.getElementById('wa-chat-form').style.display       = isWa?'block':'none';
+    document.getElementById('social-standard-form').style.display = isWa?'none':'block';
+    if(isWa){
+        document.getElementById('wa-chat-nombre').value='';
+        document.getElementById('wa-chat-telefono').value='';
+        document.getElementById('wa-chat-mensaje').value='';
+        document.getElementById('wa-chat-url-preview').innerHTML=`<i class="fa-brands fa-whatsapp" style="color:#25D366;"></i><span style="opacity:.5;">Ingresa un número para ver el enlace</span>`;
+        setTimeout(()=>document.getElementById('wa-chat-telefono').focus(),100);
+    } else {
+        const pre=document.getElementById('social-qr-prefix');
+        pre.textContent=selectedSocialNetwork.prefix;
+        pre.style.display=selectedSocialNetwork.prefix?'flex':'none';
+        const inp=document.getElementById('social-qr-value');
+        inp.placeholder=selectedSocialNetwork.placeholder; inp.value='';
+        document.getElementById('social-qr-input-label').textContent=selectedSocialNetwork.prefix?'Username:':'URL / Enlace:';
+        document.getElementById('social-qr-url-preview').innerHTML=`<i class="fa-solid fa-link"></i><span style="opacity:.5;">Escribe tu username para ver la URL</span>`;
+        setTimeout(()=>inp.focus(),100);
+    }
+    wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function onWaChatInput() {
+    clearTimeout(socialQRDebounce);
+    const telefono=document.getElementById('wa-chat-telefono').value.trim();
+    const nombre  =document.getElementById('wa-chat-nombre').value.trim();
+    const mensaje =document.getElementById('wa-chat-mensaje').value.trim();
+    if(!telefono){
+        document.getElementById('wa-chat-url-preview').innerHTML=`<i class="fa-brands fa-whatsapp" style="color:#25D366;"></i><span style="opacity:.5;">Ingresa un número para ver el enlace</span>`;
+        return;
+    }
+    const clean=telefono.replace(/[\s\+\-().]/g,'');
+    let url=`https://wa.me/${clean}`;
+    if(mensaje) url+=`?text=${encodeURIComponent(mensaje)}`;
+    const parts=[];
+    if(nombre) parts.push(`<strong>${nombre}</strong>`);
+    if(mensaje) parts.push(`"${mensaje.length>40?mensaje.slice(0,40)+'…':mensaje}"`);
+    document.getElementById('wa-chat-url-preview').innerHTML=`
+        <i class="fa-brands fa-whatsapp" style="color:#25D366;font-size:1rem;"></i>
+        <div style="flex:1;min-width:0;">${parts.length?`<div style="font-size:.71rem;color:var(--text-2);margin-bottom:2px;">${parts.join(' · ')}</div>`:''}<a href="${url}" target="_blank" rel="noopener" style="word-break:break-all;">${url}</a></div>`;
+    socialQRDebounce=setTimeout(()=>renderSocialQRInPreview(url,nombre?`WhatsApp de ${nombre}`:'WhatsApp Chat'),400);
+}
+
+function onSocialQRInput() {
+    clearTimeout(socialQRDebounce);
+    const val=document.getElementById('social-qr-value').value.trim();
+    if(!val||!selectedSocialNetwork){
+        document.getElementById('social-qr-url-preview').innerHTML=`<i class="fa-solid fa-link"></i><span style="opacity:.5;">Escribe tu username para ver la URL</span>`;
+        return;
+    }
+    const clean=val.startsWith('@')?val.slice(1):val;
+    document.getElementById('social-qr-value').value=clean;
+    const finalURL=selectedSocialNetwork.urlTemplate(clean);
+    document.getElementById('social-qr-url-preview').innerHTML=`<i class="fa-solid fa-link"></i><a href="${finalURL}" target="_blank" rel="noopener">${finalURL}</a>`;
+    socialQRDebounce=setTimeout(()=>renderSocialQRInPreview(finalURL),400);
+}
+
+async function renderSocialQRInPreview(url, customLabel) {
+    if(!url&&selectedSocialNetwork){
+        const val=document.getElementById('social-qr-value').value.trim(); if(!val) return;
+        url=selectedSocialNetwork.urlTemplate(val.startsWith('@')?val.slice(1):val);
+    }
+    if(!url) return;
+    try {
+        const canvas=document.getElementById('qr-canvas');
+        canvas.getContext('2d').clearRect(0,0,512,512);
+        new QRious({element:canvas,value:url,size:512,level:'M',background:'#ffffff',foreground:'#000000'});
+        const qrEl=document.getElementById('qr-result');
+        qrEl.classList.remove('qr-pop'); void qrEl.offsetWidth; qrEl.classList.add('qr-pop');
+        const btnQr=document.getElementById('btn-tab-qr');
+        btnQr.disabled=false;
+        const li=document.getElementById('qr-lock-icon'); if(li) li.style.display='none';
+        document.getElementById('download-btn').style.display='block';
+        switchTab('qr');
+        const instrEl=document.getElementById('qr-instruction');
+        if(instrEl) instrEl.textContent=customLabel?`Escanea para abrir ${customLabel}`:selectedSocialNetwork?`Escanea para ir a tu perfil de ${selectedSocialNetwork.name}`:'Escanea el código QR';
+    } catch(e) { showToast('Error al generar el QR.','warn'); }
+}
+
+// ================================================================
+// BATCH CSV IMPORT
+// ================================================================
+let parsedBatchRows = [];
+
+function splitCSVLine(line) {
+    const result=[]; let cur=''; let inQ=false;
+    for(let i=0;i<line.length;i++){const ch=line[i];if(inQ){if(ch==='"'){if(line[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=ch;}else{if(ch==='"')inQ=true;else if(ch===','){result.push(cur);cur='';}else cur+=ch;}}
+    result.push(cur); return result.map(v=>v.trim());
+}
+
+function normalizeHeader(h) { return h.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,''); }
+
+function parseCSV(text) {
+    const lines=text.split(/\r\n|\n|\r/).filter(l=>l.trim().length>0); if(lines.length<2) return [];
+    const headers=splitCSVLine(lines[0]).map(normalizeHeader), rows=[];
+    for(let i=1;i<lines.length;i++){const cols=splitCSVLine(lines[i]),obj={};headers.forEach((h,idx)=>obj[h]=(cols[idx]||'').trim());rows.push(obj);}
+    return rows;
+}
+
+function rowToCardData(row) {
+    const phones=[],emails=[];
+    if(row['telefono']||row['tel']||row['celular']) phones.push({type:'Móvil',value:row['telefono']||row['tel']||row['celular']||''});
+    if(row['telefono2']) phones.push({type:'Oficina',value:row['telefono2']});
+    if(row['email']||row['correo']) emails.push({type:'Trabajo',value:row['email']||row['correo']||''});
+    if(row['email2']||row['correo2']) emails.push({type:'Personal',value:row['email2']||row['correo2']||''});
+    return { nombre:row['nombre']||'',apellidos:row['apellidos']||row['apellido']||'',empresa:row['empresa']||'',puesto:row['puesto']||row['cargo']||'',
+             web:'',nota:'',calle:'',ciudad:'',estado:'',zip:'',pais:'',phones,emails,socials:[],logo:currentLogoDataUrl,brandColor:currentBrandColor };
+}
+
+function openBatchModal()  { document.getElementById('batch-overlay').classList.add('open'); }
+function closeBatchModal() { document.getElementById('batch-overlay').classList.remove('open'); }
+
+function handleCSVFile(e) {
+    const file=e.target.files[0]; if(!file) return;
+    document.getElementById('batch-filename').textContent=file.name;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+        try {
+            const rows=parseCSV(ev.target.result);
+            if(rows.length===0){showToast('CSV sin filas válidas.','warn');return;}
+            parsedBatchRows=rows; renderBatchPreview(rows);
+        } catch(err){showToast('No se pudo leer el CSV.','warn');}
+    };
+    reader.readAsText(file,'UTF-8');
+}
+
+function renderBatchPreview(rows) {
+    document.getElementById('batch-preview').style.display='block';
+    document.getElementById('batch-footer').style.display='flex';
+    const valid=rows.filter(r=>r['nombre']).length;
+    document.getElementById('batch-summary').innerHTML=`Detectadas <strong>${rows.length}</strong> fila(s), <strong>${valid}</strong> con nombre válido:`;
+    const cols=['nombre','apellidos','empresa','puesto','telefono','email'];
+    const labels={nombre:'Nombre',apellidos:'Apellidos',empresa:'Empresa',puesto:'Puesto',telefono:'Teléfono',email:'Email'};
+    let html='<thead><tr>'+cols.map(c=>`<th>${labels[c]}</th>`).join('')+'</tr></thead><tbody>';
+    rows.slice(0,50).forEach(r=>{html+='<tr>'+cols.map(c=>`<td>${r[c]||'—'}</td>`).join('')+'</tr>';});
+    document.getElementById('batch-table').innerHTML=html+'</tbody>';
+}
+
+function processBatchImport() {
+    if(parsedBatchRows.length===0){showToast('Selecciona un CSV primero.','warn');return;}
+    const cards=getLibrary(), now=new Date().toISOString(); let created=0;
+    parsedBatchRows.forEach(row=>{
+        if(!row['nombre']) return;
+        const data=rowToCardData(row);
+        cards.unshift({id:`card_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,createdAt:now,updatedAt:now,...data});
+        created++;
+    });
+    setLibrary(cards); closeBatchModal(); parsedBatchRows=[];
+    document.getElementById('batch-csv-input').value='';
+    document.getElementById('batch-preview').style.display='none';
+    document.getElementById('batch-footer').style.display='none';
+    document.getElementById('batch-filename').textContent='Ningún archivo seleccionado';
+    if(created>0){showToast(`${created} tarjeta(s) creadas.`,'success');openLibrary();}
+    else showToast('Ninguna fila tenía un nombre válido.','warn');
+}
+
+// ================================================================
+// EXPORT TO ZIP
+// ================================================================
+async function exportLibraryZip() {
+    if(typeof JSZip==='undefined'){showToast('No se pudo cargar el generador de ZIP.','warn');return;}
+    const searchVal=document.getElementById('library-search').value;
+    const cards=getLibrary().filter(c=>`${c.nombre} ${c.apellidos} ${c.empresa}`.toLowerCase().includes(searchVal.trim().toLowerCase()));
+    if(cards.length===0){showToast('No hay tarjetas para exportar.','warn');return;}
+    showToast(`Generando ZIP con ${cards.length} tarjeta(s)...`,'info');
+    try {
+        const zip=new JSZip();
+        for(const card of cards){
+            const vcStr=buildVCardString(card);
+            const canvas=await renderQRCanvasWithLogo(vcStr,card.logo);
+            const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+            const name=[card.nombre,card.apellidos].filter(Boolean).map(slugify).join('-')||'contacto';
+            zip.file(`${name}-vcard.vcf`,vcStr);
+            zip.file(`${name}-vcard.png`,blob);
+        }
+        const zipBlob=await zip.generateAsync({type:'blob'});
+        const n=document.getElementById('v_nombre').value.trim();
+        const a=document.getElementById('v_apellidos').value.trim();
+        const base=[n,a].filter(Boolean).map(slugify).join('-');
+        const url=URL.createObjectURL(zipBlob);
+        const link=document.createElement('a'); link.href=url; link.download=base?`${base}-tarjetas.zip`:'emd-tarjetas.zip';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+        showToast('ZIP descargado.','success');
+    } catch(e){showToast('Error al generar el ZIP.','warn');}
+}
+</script>
+</body>
+</html>
