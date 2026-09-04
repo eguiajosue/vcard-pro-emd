@@ -1,46 +1,82 @@
 import { SECTION_META, VC_SECTIONS } from './data.js';
 import { state } from './state.js';
-import { updatePreview } from './preview.js';
 
 export function initNav() {
-  // Section buttons
+  // Sidebar nav: scroll-to-section (not show/hide — all sections visible)
   document.querySelectorAll('.nav-item[data-section]').forEach(btn => {
-    btn.addEventListener('click', () => switchSection(btn.dataset.section));
+    btn.addEventListener('click', () => scrollToSection(btn.dataset.section));
   });
+
   // Mode pill
   document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
     btn.addEventListener('click', () => switchMode(btn.dataset.mode));
   });
-  // Prev / Next arrows
+
+  // Prev / Next arrows: scroll to prev/next section
   document.getElementById('btn-prev-sec')?.addEventListener('click', prevSection);
   document.getElementById('btn-next-sec')?.addEventListener('click', nextSection);
+
+  // IntersectionObserver: highlight nav item for visible section
+  initSectionObserver();
 }
 
 export function switchSection(id) {
   state.currentSection = id;
-  document.querySelectorAll('.fsec').forEach(s => s.classList.toggle('active', s.id === `sec-${id}`));
-  document.querySelectorAll('.nav-item[data-section]').forEach(b => b.classList.toggle('active', b.dataset.section === id));
+  scrollToSection(id);
+}
+
+export function scrollToSection(id) {
+  state.currentSection = id;
+  const el = document.getElementById(`sec-${id}`);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  highlightNav(id);
+  updateCrumb(id);
+}
+
+function highlightNav(id) {
+  document.querySelectorAll('.nav-item[data-section]').forEach(b =>
+    b.classList.toggle('active', b.dataset.section === id));
+}
+
+function updateCrumb(id) {
   const meta = SECTION_META[id];
   if (!meta) return;
-  const setTxt = (elId, val) => { const e = document.getElementById(elId); if (e) e.textContent = val; };
-  const setClass = (elId, cls) => { const e = document.getElementById(elId); if (e) e.className = `fa-solid ${cls}`; };
-  setClass('fh-icon',    meta.icon);
-  setTxt ('fh-title',   meta.title);
-  setTxt ('fh-sub',     meta.sub);
-  setClass('crumb-icon', meta.icon);
-  setTxt ('crumb-title', meta.title);
+  const icon = document.getElementById('crumb-icon');
+  const title = document.getElementById('crumb-title');
+  if (icon) icon.className = `fa-solid ${meta.icon}`;
+  if (title) title.textContent = meta.title;
+}
+
+function initSectionObserver() {
+  const wrap = document.querySelector('.sections-wrap');
+  if (!wrap || !('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id.replace('sec-', '');
+        highlightNav(id);
+        updateCrumb(id);
+        state.currentSection = id;
+      }
+    });
+  }, { root: wrap, threshold: 0.3 });
+
+  document.querySelectorAll('.fsec[id]').forEach(sec => observer.observe(sec));
 }
 
 export function nextSection() {
   const list = state.currentMode === 'vcard' ? VC_SECTIONS : ['social-qr'];
   const i = list.indexOf(state.currentSection);
-  if (i < list.length - 1) switchSection(list[i + 1]);
+  if (i < list.length - 1) scrollToSection(list[i + 1]);
 }
 
 export function prevSection() {
   const list = state.currentMode === 'vcard' ? VC_SECTIONS : ['social-qr'];
   const i = list.indexOf(state.currentSection);
-  if (i > 0) switchSection(list[i - 1]);
+  if (i > 0) scrollToSection(list[i - 1]);
 }
 
 export function switchMode(mode) {
@@ -52,8 +88,8 @@ export function switchMode(mode) {
   if (vn) { vn.style.opacity = isVC ? '1' : '0.35'; vn.style.pointerEvents = isVC ? 'auto' : 'none'; }
   document.getElementById('btn-guardar-tarjeta').style.display = isVC ? '' : 'none';
   document.getElementById('btn-exportar').style.display        = isVC ? '' : 'none';
-  if (isVC) switchSection(state.currentSection === 'social-qr' ? 'datos' : state.currentSection);
-  else       switchSection('social-qr');
+  if (isVC) scrollToSection(state.currentSection === 'social-qr' ? 'datos' : state.currentSection);
+  else       scrollToSection('social-qr');
 }
 
 export function updateNavDots() {
@@ -61,8 +97,7 @@ export function updateNavDots() {
     datos:     ['v_nombre'],
     trabajo:   ['v_empresa','v_puesto','v_web','v_nota'],
     direccion: ['v_calle','v_ciudad','v_estado','v_zip','v_pais'],
-    marca:     [],
-    redes:     [],
+    marca:     [], redes: [],
   };
   Object.entries(FIELDS).forEach(([sec, fields]) => {
     const el = document.getElementById(`nav-${sec}`);
@@ -72,4 +107,9 @@ export function updateNavDots() {
       : fields.some(id => document.getElementById(id)?.value.trim());
     el.classList.toggle('has-data', has);
   });
+  const nd = document.getElementById('nav-datos');
+  if (nd) nd.classList.toggle('has-data', !!(
+    document.getElementById('v_nombre')?.value.trim() ||
+    document.querySelectorAll('#phones-container .phone-value').length > 0
+  ));
 }

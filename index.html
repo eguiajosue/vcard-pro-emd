@@ -105,6 +105,7 @@
 
       <!-- SECTION: Datos -->
       <section class="fsec active" id="sec-datos">
+        <div class="sec-divider"><i class="fa-solid fa-user"></i><span>Datos Principales</span></div>
         <div class="form-row">
           <div class="form-group" id="fg-nombre">
             <label>Nombre</label>
@@ -135,6 +136,7 @@
 
       <!-- SECTION: Trabajo -->
       <section class="fsec" id="sec-trabajo">
+        <div class="sec-divider"><i class="fa-solid fa-briefcase"></i><span>Trabajo &amp; Biografia</span></div>
         <div class="form-row">
           <div class="form-group"><label>Empresa</label><input type="text" id="v_empresa" placeholder="EMD Publicidad" autocomplete="organization"></div>
           <div class="form-group"><label>Puesto</label><input type="text"   id="v_puesto"  placeholder="Director de Arte"></div>
@@ -145,6 +147,7 @@
 
       <!-- SECTION: Direccion -->
       <section class="fsec" id="sec-direccion">
+        <div class="sec-divider"><i class="fa-solid fa-location-dot"></i><span>Direccion</span></div>
         <div class="form-group"><label>Calle y Numero</label><input type="text" id="v_calle" placeholder="Av. Guerrero 1234"></div>
         <div class="form-row">
           <div class="form-group"><label>Ciudad</label><input type="text" id="v_ciudad" placeholder="Nuevo Laredo"></div>
@@ -158,6 +161,7 @@
 
       <!-- SECTION: Marca -->
       <section class="fsec" id="sec-marca">
+        <div class="sec-divider"><i class="fa-solid fa-palette"></i><span>Marca del Cliente</span></div>
         <div class="form-group">
           <label>Logo de la empresa</label>
           <div class="logo-row">
@@ -183,6 +187,7 @@
 
       <!-- SECTION: Redes -->
       <section class="fsec" id="sec-redes">
+        <div class="sec-divider"><i class="fa-solid fa-hashtag"></i><span>Redes Sociales</span></div>
         <p class="sec-desc">Selecciona las redes que deseas anadir.</p>
         <div class="social-grid" id="social-grid"></div>
         <div id="active-socials-container"></div>
@@ -190,6 +195,7 @@
 
       <!-- SECTION: Social QR -->
       <section class="fsec" id="sec-social-qr">
+        <div class="sec-divider"><i class="fa-solid fa-qrcode"></i><span>Perfil Social QR</span></div>
         <p class="sec-desc">Elige una red, escribe tu username o URL y el QR se genera automaticamente.</p>
         <div class="sqr-grid" id="social-qr-network-grid"></div>
         <div class="sqr-wrap" id="social-qr-input-wrap" style="display:none;">
@@ -253,12 +259,7 @@
     <div class="preview-area">
       <div class="preview-wrap">
         <!-- Tab switcher -->
-        <div class="view-tabs">
-          <button class="vtb active" id="btn-tab-preview"><i class="fa-regular fa-eye"></i> Vista previa</button>
-          <button class="vtb" id="btn-tab-qr" disabled><i class="fa-solid fa-lock" id="qr-lock-icon"></i> QR Code</button>
-        </div>
-
-        <!-- Preview view -->
+        <!-- Preview view (always visible left) -->
         <div id="view-preview">
           <div class="contact-card">
             <div class="cc-head">
@@ -279,7 +280,13 @@
         <!-- QR view -->
         <div id="view-qr" style="display:none;">
           <div class="qr-card">
-            <div id="qr-result"><canvas id="qr-canvas"></canvas></div>
+            <div id="qr-result">
+              <div class="qr-placeholder" id="qr-placeholder">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>Genera el QR con Cmd+Enter</span>
+              </div>
+              <canvas id="qr-canvas" style="display:none;"></canvas>
+            </div>
             <p class="qr-instr" id="qr-instruction">Escanea para guardar el contacto.</p>
             <div class="qr-acts">
               <button class="qr-act-btn" id="btn-dl-qr"><i class="fa-solid fa-download"></i> Descargar</button>

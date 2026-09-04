@@ -1,10 +1,11 @@
 import { SOCIAL_NETWORKS } from './data.js';
 import { state } from './state.js';
+import { updateNavDots } from './nav.js';
 
 let autoSaveTimer;
 
 export function updatePreview() {
-  const g = id => document.getElementById(id);
+  const g   = id => document.getElementById(id);
   const val = id => g(id)?.value.trim() || '';
 
   const n      = val('v_nombre');
@@ -21,37 +22,38 @@ export function updatePreview() {
   const ciudad = val('v_ciudad');
   const estado = val('v_estado');
 
-  // Validation clear
   if (n) g('fg-nombre')?.classList.remove('field-error');
   if (tel) g('fg-telefonos')?.classList.remove('field-error');
 
-  // Empty hint
   const hint = g('pv-empty-hint');
   if (hint) hint.style.display = (n||a||tel||email||emp||puesto) ? 'none' : 'block';
 
   updateNavDots();
   scheduleAutoSave();
 
-  // Lock QR when form changes
+  // In side-by-side mode: don't lock QR tab, just mark QR as outdated
   const btnQ = g('btn-tab-qr');
   const li   = g('qr-lock-icon');
   if (btnQ && !btnQ.disabled) {
-    btnQ.disabled = true;
-    if (li) li.style.display = '';
-    if (g('download-btn')) g('download-btn').style.display = 'none';
-    if (btnQ.classList.contains('active')) switchPreviewTab('preview');
+    // QR exists but form changed — show lock indicator on QR panel
+    const qrResult = g('qr-result');
+    if (qrResult?.classList.contains('has-qr')) {
+      qrResult.style.opacity = '0.45';
+      qrResult.title = 'Genera de nuevo para actualizar';
+    }
   }
 
   // Avatar
   g('pv-avatar').innerText = ((n[0]||'') + (a[0]||'')).toUpperCase() || 'JD';
-  // Name / job
+
+  // Name / Job
   g('pv-name').innerText = `${n} ${a}`.trim() || 'Nombre Apellido';
   const job = puesto && emp ? `${puesto} · ${emp}` : puesto || emp;
-  const pj = g('pv-job');
-  pj.innerText = job;
+  const pj  = g('pv-job');
+  pj.innerText    = job;
   pj.style.display = job ? 'block' : 'none';
 
-  // Quick action buttons
+  // Quick actions
   let qa = '';
   if (tel)   qa += `<div class="pv-action-btn"><i class="fa-solid fa-phone"></i></div>`;
   if (email) qa += `<div class="pv-action-btn"><i class="fa-solid fa-envelope"></i></div>`;
@@ -62,19 +64,19 @@ export function updatePreview() {
   let cc = '';
   phones.forEach(p => cc += contactRow('fa-phone', p.type, p.value));
   emails.forEach(e => cc += contactRow('fa-envelope', e.type, e.value));
-  if (web) cc += contactRow('fa-globe', 'Sitio Web', web);
+  if (web)  cc += contactRow('fa-globe', 'Sitio Web', web);
   const addr = [calle, ciudad, estado].filter(Boolean);
   if (addr.length) cc += contactRow('fa-location-dot', 'Direccion', addr.join(', '));
   if (nota) cc += contactRow('fa-align-left', 'Biografia', nota);
   const ccEl = g('pv-contact-card');
-  ccEl.innerHTML = cc;
+  ccEl.innerHTML    = cc;
   ccEl.style.display = cc ? 'block' : 'none';
 
   // Social list
   const pvSL = g('pv-social-list');
   pvSL.innerHTML = '';
   document.querySelectorAll('.social-input').forEach(inp => {
-    const net = SOCIAL_NETWORKS.find(s => s.id === inp.dataset.network);
+    const net  = SOCIAL_NETWORKS.find(s => s.id === inp.dataset.network);
     if (!net) return;
     const url  = inp.value.trim();
     const user = url ? url.replace(/\/$/, '').split('/').pop().split('?')[0] : 'Enlace';
@@ -100,16 +102,21 @@ function contactRow(icon, label, value) {
   </div>`;
 }
 
-export function switchPreviewTab(tab) {
+// In dual-panel mode, switchPreviewTab is a no-op (both always visible)
+export function switchPreviewTab(_tab) {
+  // Both panels always visible in desktop layout
+  // On mobile (single column), respect tab switching
+  const isMobile = window.innerWidth <= 1100;
+  if (!isMobile) return;
   const btnP = document.getElementById('btn-tab-preview');
   const btnQ = document.getElementById('btn-tab-qr');
   const vP   = document.getElementById('view-preview');
   const vQ   = document.getElementById('view-qr');
-  if (tab === 'qr' && btnQ?.disabled) return;
-  btnP.classList.toggle('active', tab === 'preview');
-  btnQ.classList.toggle('active', tab === 'qr');
-  vP.style.display = tab === 'preview' ? '' : 'none';
-  vQ.style.display = tab === 'qr'      ? '' : 'none';
+  if (!btnP || !btnQ) return;
+  btnP.classList.toggle('active', _tab === 'preview');
+  btnQ.classList.toggle('active', _tab === 'qr');
+  vP.style.display = _tab === 'preview' ? 'flex' : 'none';
+  vQ.style.display = _tab === 'qr'      ? 'flex' : 'none';
 }
 
 function scheduleAutoSave() {
@@ -124,47 +131,38 @@ function scheduleAutoSave() {
   }, 1500);
 }
 
-// Import here to avoid circular deps
-function updateNavDots() {
-  const FIELDS = {
-    datos: ['v_nombre'], trabajo: ['v_empresa','v_puesto','v_web','v_nota'],
-    direccion: ['v_calle','v_ciudad','v_estado','v_zip','v_pais'], marca: [], redes: [],
-  };
-  Object.entries(FIELDS).forEach(([sec, fields]) => {
-    const el = document.getElementById(`nav-${sec}`);
-    if (!el) return;
-    const has = sec === 'redes'
-      ? document.querySelectorAll('.social-input').length > 0
-      : fields.some(id => document.getElementById(id)?.value.trim());
-    el.classList.toggle('has-data', has);
-  });
-}
-
 export function getPhoneEntries() {
   return Array.from(document.querySelectorAll('#phones-container .multi-row'))
-    .map(r => ({ type: r.querySelector('.phone-type').value, value: r.querySelector('.phone-value').value.trim() }))
+    .map(r => ({
+      type:  r.querySelector('.phone-type')?.value || 'Movil',
+      value: r.querySelector('.phone-value')?.value.trim() || '',
+    }))
     .filter(p => p.value);
 }
 
 export function getEmailEntries() {
   return Array.from(document.querySelectorAll('#emails-container .multi-row'))
-    .map(r => ({ type: r.querySelector('.email-type').value, value: r.querySelector('.email-value').value.trim() }))
+    .map(r => ({
+      type:  r.querySelector('.email-type')?.value || 'Personal',
+      value: r.querySelector('.email-value')?.value.trim() || '',
+    }))
     .filter(e => e.value);
 }
 
 export function collectFormData() {
   const v = id => document.getElementById(id)?.value.trim() || '';
   return {
-    nombre: v('v_nombre'), apellidos: v('v_apellidos'),
-    empresa: v('v_empresa'), puesto: v('v_puesto'),
-    web: v('v_web'), nota: v('v_nota'),
-    calle: v('v_calle'), ciudad: v('v_ciudad'),
-    estado: v('v_estado'), zip: v('v_zip'), pais: v('v_pais'),
-    phones: getPhoneEntries(), emails: getEmailEntries(),
+    nombre:   v('v_nombre'),   apellidos: v('v_apellidos'),
+    empresa:  v('v_empresa'),  puesto:    v('v_puesto'),
+    web:      v('v_web'),      nota:      v('v_nota'),
+    calle:    v('v_calle'),    ciudad:    v('v_ciudad'),
+    estado:   v('v_estado'),   zip:       v('v_zip'),    pais: v('v_pais'),
+    phones:  getPhoneEntries(),
+    emails:  getEmailEntries(),
     socials: Array.from(document.querySelectorAll('.social-input'))
       .map(i => ({ network: i.dataset.network, value: i.value.trim() }))
       .filter(s => s.value),
-    logo: state.logoDataUrl,
+    logo:      state.logoDataUrl,
     brandColor: state.brandColor,
   };
 }

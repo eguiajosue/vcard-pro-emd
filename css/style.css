@@ -510,3 +510,146 @@ button { -webkit-tap-highlight-color: transparent; }
   :root { --fw: calc(100vw - var(--sw)); }
   .preview-panel, .sb-c, .sb-r, .tb-crumb { display: none; }
 }
+
+/* ══════════════════════════════════════
+   LAYOUT OVERRIDE: eliminate dead space
+══════════════════════════════════════ */
+
+/* Form: all sections always visible, stacked */
+.fsec { display: block !important; animation: none !important; margin-bottom: 0; }
+.sections-wrap { display: flex; flex-direction: column; gap: 0; }
+
+/* Section divider headers */
+.sec-divider {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 0 8px;
+  margin-top: 2px;
+  border-top: 1px solid var(--br);
+  font-size: .73rem;
+  font-weight: 700;
+  color: var(--t2);
+  letter-spacing: -.05px;
+  position: sticky;
+  top: -13px;          /* stick to top of scrollable panel */
+  background: var(--bg-s);
+  z-index: 10;
+}
+.sec-divider i { color: var(--fuchsia); font-size: .68rem; }
+.sec-divider span { color: var(--t1); }
+
+/* Remove sticky top on first section — no border */
+#sec-datos .sec-divider { border-top: none; margin-top: 0; padding-top: 0; }
+
+/* Nav items: visual indicator only (active = current scroll region) */
+.nav-item.active {
+  background: var(--ac-bg);
+  border-color: rgba(234,21,133,.18);
+  color: var(--fuchsia);
+}
+
+/* Form header: hide — redundant with sticky section dividers */
+.fh { display: none; }
+
+/* Form panel: no header means more content space */
+.form-panel { --fw: 390px; }
+
+/* ── PREVIEW: side-by-side, fill height ── */
+.preview-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* Both views always visible */
+#view-preview,
+#view-qr {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Contact card fills full height */
+.contact-card {
+  flex: 1;
+  max-height: none !important;
+  overflow: hidden;
+}
+
+/* QR card fills full height */
+.qr-card {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+}
+
+/* QR result fills available space */
+#qr-result {
+  flex: 1;
+  aspect-ratio: unset !important;
+  height: auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#qr-result canvas {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* QR placeholder (pre-generate state) */
+.qr-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--t3);
+  height: 100%;
+  min-height: 160px;
+  padding: 20px;
+  text-align: center;
+}
+.qr-placeholder i    { font-size: 2.8rem; }
+.qr-placeholder span { font-size: .72rem; line-height: 1.4; }
+
+/* When QR is generated: hide placeholder, show canvas */
+#qr-result.has-qr .qr-placeholder { display: none; }
+#qr-result.has-qr canvas           { display: block !important; }
+
+/* QR instruction + actions — fixed at bottom */
+.qr-card { justify-content: space-between; }
+.qr-instr { flex-shrink: 0; font-size: .68rem; }
+.qr-acts { flex-shrink: 0; }
+
+/* Tab switcher: repurposed as panel labels only */
+.view-tabs { display: none !important; }
+
+/* Section prev/next arrows: repurpose as scroll to section */
+.sec-nav .sa { cursor: pointer; }
+
+/* Crumb: show current scroll section */
+.tb-crumb { display: flex; }
+
+/* Preview footer: shrink */
+.preview-foot { padding: 5px 12px; }
+
+/* ── RESPONSIVE adjustments ── */
+@media (max-width: 1100px) {
+  .preview-area { grid-template-columns: 1fr; }
+  #view-qr { display: none !important; }
+  .view-tabs { display: flex !important; }
+}
+
+@media (max-width: 960px) {
+  :root { --fw: 300px; }
+}

@@ -93,12 +93,27 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 export function unlockQRTab() {
+  // Mark QR result as having content (shows canvas, hides placeholder)
+  const qrEl = document.getElementById('qr-result');
+  if (qrEl) {
+    qrEl.classList.add('has-qr');
+    qrEl.style.opacity = '1';
+    qrEl.title = '';
+    qrEl.classList.remove('qr-pop');
+    void qrEl.offsetWidth;
+    qrEl.classList.add('qr-pop');
+  }
+  // Show canvas, hide placeholder
+  const canvas = document.getElementById('qr-canvas');
+  if (canvas) canvas.style.display = 'block';
+  const placeholder = document.getElementById('qr-placeholder');
+  if (placeholder) placeholder.style.display = 'none';
+
+  // Legacy: unlock tab button (mobile)
   const btnQ = document.getElementById('btn-tab-qr');
   const li   = document.getElementById('qr-lock-icon');
   if (btnQ) btnQ.disabled = false;
   if (li) li.style.display = 'none';
-  const qrEl = document.getElementById('qr-result');
-  if (qrEl) { qrEl.classList.remove('qr-pop'); void qrEl.offsetWidth; qrEl.classList.add('qr-pop'); }
   document.getElementById('download-btn').style.display = 'block';
 }
 
