@@ -2,6 +2,7 @@
  * Help / Onboarding module
  * Uses GSAP + ScrollTrigger for scroll animations
  */
+import { MOD, isMac } from './utils.js';
 
 let gsapLoaded = false;
 
@@ -337,7 +338,7 @@ function helpContent() {
       <div class="step-card">
         <div class="step-num" data-n="2">Codigo QR</div>
         <h3>Genera el QR</h3>
-        <p>Presiona <strong>Generar QR</strong> o usa <kbd style="font-family:var(--mono);font-size:.7rem;background:var(--bg-e);border:1px solid var(--br-s);border-radius:3px;padding:1px 5px;">&#8984;Enter</kbd>. El QR codifica todos tus datos de contacto en formato vCard 3.0.</p>
+        <p>Presiona <strong>Generar QR</strong> o usa <kbd style="font-family:var(--mono);font-size:.7rem;background:var(--bg-e);border:1px solid var(--br-s);border-radius:3px;padding:1px 5px;">${MOD}+Enter</kbd>. El QR codifica todos tus datos de contacto en formato vCard 3.0.</p>
         <div class="step-illus">
           <div class="illus-qr">
             <div class="illus-qr-box">
@@ -535,15 +536,15 @@ function helpContent() {
 
     <div class="shortcuts-grid">
       ${[
-        ['Abrir paleta de comandos', ['⌘','K'], true],
-        ['Guardar tarjeta',          ['⌘','S'], false],
-        ['Nueva tarjeta',            ['⌘','N'], false],
-        ['Generar codigo QR',        ['⌘','↵'], true],
-        ['Abrir libreria',           ['⌘','L'], false],
-        ['Abrir exportacion',        ['⌘','E'], false],
-        ['Cambiar tema',             ['⌘','D'], false],
-        ['Seccion siguiente',        ['⌘','→'], false],
-        ['Seccion anterior',         ['⌘','←'], false],
+        ['Abrir paleta de comandos', [MOD,'K'], true],
+        ['Guardar tarjeta',          [MOD,'S'], false],
+        ['Nueva tarjeta',            [MOD,'N'], false],
+        ['Generar codigo QR',        [MOD,'↵'], true],
+        ['Abrir libreria',           [MOD,'L'], false],
+        ['Abrir exportacion',        [MOD,'E'], false],
+        ['Cambiar tema',             [MOD,'D'], false],
+        ['Seccion siguiente',        [MOD,'→'], false],
+        ['Seccion anterior',         [MOD,'←'], false],
         ['Cerrar modales / ayuda',   ['Esc'],    false],
       ].map(([label, keys, hl]) =>
         `<div class="shortcut-row${hl ? ' highlight' : ''}">
@@ -556,7 +557,7 @@ function helpContent() {
     <!-- Animated key illustration -->
     <div style="margin-top:28px;display:flex;gap:6px;align-items:center;">
       <div class="illus-keys">
-        <div class="illus-key">⌘</div>
+        <div class="illus-key">${MOD}</div>
         <div class="illus-key">K</div>
       </div>
       <span style="font-size:.78rem;color:var(--t2);margin-left:6px;">Abre la paleta de comandos con busqueda rapida de cualquier funcion</span>
@@ -577,11 +578,11 @@ function helpContent() {
       </div>
       <div style="padding:5px;">
         ${[
-          ['fa-plus','Nueva Tarjeta','⌘N',true],
-          ['fa-floppy-disk','Guardar Tarjeta','⌘S',false],
-          ['fa-qrcode','Generar QR','⌘↵',false],
-          ['fa-address-book','Mis Tarjetas','⌘L',false],
-          ['fa-download','Exportar','⌘E',false],
+          ['fa-plus','Nueva Tarjeta',`${MOD}N`,true],
+          ['fa-floppy-disk','Guardar Tarjeta',`${MOD}S`,false],
+          ['fa-qrcode','Generar QR',`${MOD}↵`,false],
+          ['fa-address-book','Mis Tarjetas',`${MOD}L`,false],
+          ['fa-download','Exportar',`${MOD}E`,false],
         ].map(([ic,lbl,sc,focused]) =>
           `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--r-sm);background:${focused?'var(--ac-bg)':'transparent'};">
             <div style="width:25px;height:25px;background:${focused?'rgba(234,21,133,.14)':'var(--bg-i)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:${focused?'var(--fuchsia)':'var(--t2)'};">

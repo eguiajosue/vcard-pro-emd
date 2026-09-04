@@ -49,10 +49,10 @@
       <span id="toolbar-status-text">Tarjeta nueva</span>
     </div>
     <div class="tb-sep"></div>
-    <button class="cmd-pill" id="cmd-trigger">
+    <button class="cmd-pill" id="cmd-trigger" data-mod-aria="K">
       <i class="fa-solid fa-magnifying-glass"></i>
       Comandos
-      <kbd>&#8984;K</kbd>
+      <kbd data-mod="K">&#8984;K</kbd>
     </button>
     <button class="tb-btn" id="btn-library" title="Mis Tarjetas">
       <i class="fa-solid fa-address-book"></i>
@@ -243,15 +243,15 @@
         <i class="fa-solid fa-qrcode btn-lbl-icon"></i>
         <span class="btn-lbl">Generar QR</span>
       </button>
-      <button class="ico-btn sv" id="btn-guardar-tarjeta" title="Guardar (Cmd+S)"><i class="fa-regular fa-floppy-disk"></i></button>
-      <button class="ico-btn ex" id="btn-exportar" title="Exportar (Cmd+E)"><i class="fa-solid fa-download"></i></button>
+      <button class="ico-btn sv" id="btn-guardar-tarjeta" title="Guardar" data-mod-aria="S"><i class="fa-regular fa-floppy-disk"></i></button>
+      <button class="ico-btn ex" id="btn-exportar" title="Exportar" data-mod-aria="E"><i class="fa-solid fa-download"></i></button>
       <!-- hidden legacy buttons kept for JS compat -->
       <button id="download-btn" style="display:none;"></button>
       <button id="btn-generar-mobile" style="display:none;"></button>
       <button id="btn-guardar-mobile" style="display:none;"></button>
       <div class="sec-nav">
-        <button class="sa" id="btn-prev-sec" title="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
-        <button class="sa" id="btn-next-sec" title="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+        <button class="sa" id="btn-prev-sec" title="Anterior (Cmd+←)" data-mod-aria="←"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="sa" id="btn-next-sec" title="Siguiente (Cmd+→)" data-mod-aria="→"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
     </div>
   </div><!-- /.form-panel -->
@@ -312,7 +312,7 @@
 
 <!-- ═══ STATUS BAR ═══ -->
 <footer class="status-bar">
-  <div class="sb-l"><span class="sdot" id="status-dot"></span><span id="status-text">Listo</span></div>
+  <div class="sb-l"><span class="sdot" id="status-dot"></span><span id="status-text">Listo</span><span class="sb-os-badge" id="sb-os-badge"></span></div>
   <div class="sb-c">vCard <span class="logo-accent">Pro</span> &middot; EMD Publicidad</div>
   <div class="sb-r">
     <kbd>&#8984;K</kbd> comandos &nbsp;&middot;&nbsp;

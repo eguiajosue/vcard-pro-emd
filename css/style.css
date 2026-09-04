@@ -653,3 +653,119 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 960px) {
   :root { --fw: 300px; }
 }
+
+/* ══════════════════════════════════════
+   LAYOUT FIX: fill viewport, no dead space
+══════════════════════════════════════ */
+
+/* Main layout: distribute all available space */
+.main {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Form panel: fixed, no shrink */
+.form-panel {
+  flex: 0 0 var(--fw);
+  min-width: 0;
+}
+
+/* Preview panel: take ALL remaining space */
+.preview-panel {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 0;           /* critical: forces flex to distribute properly */
+}
+
+/* Preview area: fill the full panel (vertical + horizontal) */
+.preview-area {
+  flex: 1;            /* take remaining vertical space */
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  /* Grid already set: grid-template-columns: 1fr 1fr */
+}
+
+/* Grid items: fill their cells */
+#view-preview,
+#view-qr {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Cards: fill 100% of their grid cell */
+.contact-card,
+.qr-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* QR result: fill available card height */
+#qr-result {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Preview foot: don't steal vertical space */
+.preview-foot {
+  flex-shrink: 0;
+}
+
+/* Sidebar: fixed, no shrink */
+.sidebar {
+  flex: 0 0 var(--sw);
+}
+
+/* ── Wide screen adaptations ── */
+/* On very wide screens: balance form vs preview ratio */
+@media (min-width: 1400px) {
+  :root { --fw: 420px; }
+}
+@media (min-width: 1800px) {
+  :root { --fw: 460px; }
+}
+
+/* ── Responsive: narrow screens ── */
+@media (max-width: 960px) {
+  :root { --fw: 300px; --sw: 44px; }
+  .preview-area { grid-template-columns: 1fr; }
+  #view-qr { display: none !important; }
+}
+@media (max-width: 700px) {
+  :root { --fw: calc(100vw - var(--sw)); }
+  .preview-panel { display: none; }
+  .sb-r, .tb-crumb { display: none; }
+}
+
+/* OS badge in status bar */
+.sb-os-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: .62rem;
+  color: var(--t3);
+  margin-left: 6px;
+  padding-left: 6px;
+  border-left: 1px solid var(--br);
+}
+
+/* Ensure grid stretches properly in all browsers */
+.preview-area {
+  align-content: stretch;
+  justify-content: stretch;
+}
+
+/* Force both preview columns to stretch to full cell height */
+.preview-area > div {
+  min-height: 0;
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* Topbar: ensure new-card button stays small */
+#btn-new-card {
+  font-size: .68rem;
+}

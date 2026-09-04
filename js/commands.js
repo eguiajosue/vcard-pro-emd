@@ -1,19 +1,20 @@
 import { showToast } from './toast.js';
 import { openHelp } from './help.js';
+import { MOD, hasModifier } from './utils.js';
 import { toggleTheme } from './theme.js';
 import { switchMode, switchSection, nextSection, prevSection } from './nav.js';
 import { saveCurrentCard, newCard, openLibrary, openModal } from './library.js';
 import { generarQR } from './qr.js';
 
 const COMMANDS = [
-  { label:'Nueva Tarjeta',    sc:['⌘','N'], icon:'fa-plus',         action: () => newCard() },
-  { label:'Guardar Tarjeta',  sc:['⌘','S'], icon:'fa-floppy-disk',  action: () => saveCurrentCard() },
-  { label:'Generar QR',       sc:['⌘','↵'], icon:'fa-qrcode',       action: () => generarQR() },
-  { label:'Mis Tarjetas',     sc:['⌘','L'], icon:'fa-address-book', action: () => openLibrary() },
-  { label:'Exportar',         sc:['⌘','E'], icon:'fa-download',     action: () => openModal('export-overlay') },
+  { label:'Nueva Tarjeta',    get sc() { return [MOD,'N']; }, icon:'fa-plus',         action: () => newCard() },
+  { label:'Guardar Tarjeta',  get sc() { return [MOD,'S']; }, icon:'fa-floppy-disk',  action: () => saveCurrentCard() },
+  { label:'Generar QR',       get sc() { return [MOD,'↵']; }, icon:'fa-qrcode',       action: () => generarQR() },
+  { label:'Mis Tarjetas',     get sc() { return [MOD,'L']; }, icon:'fa-address-book', action: () => openLibrary() },
+  { label:'Exportar',         get sc() { return [MOD,'E']; }, icon:'fa-download',     action: () => openModal('export-overlay') },
   { label:'Importar CSV',     sc:[],        icon:'fa-file-csv',     action: () => openModal('batch-overlay') },
   { label:'Plantillas',       sc:[],        icon:'fa-palette',      action: () => openModal('templates-overlay') },
-  { label:'Cambiar Tema',     sc:['⌘','D'], icon:'fa-moon',         action: () => toggleTheme() },
+  { label:'Cambiar Tema',     get sc() { return [MOD,'D']; }, icon:'fa-moon',         action: () => toggleTheme() },
   { label:'Modo Social QR',   sc:[],        icon:'fa-share-nodes',  action: () => switchMode('social') },
   { label:'Modo vCard',       sc:[],        icon:'fa-address-card', action: () => switchMode('vcard') },
   { label:'Ayuda / Tutorial',  sc:['?'],      icon:'fa-circle-question', action: () => openHelp() },
@@ -34,7 +35,7 @@ export function initCommands() {
 
   // Global keyboard shortcuts
   document.addEventListener('keydown', e => {
-    const mod = e.metaKey || e.ctrlKey;
+    const mod = hasModifier(e);
     if (e.key === 'k' && mod) { e.preventDefault(); toggleCmd(); return; }
     if (e.key === 's' && mod) { e.preventDefault(); saveCurrentCard(); return; }
     if (e.key === 'n' && mod) { e.preventDefault(); newCard(); return; }

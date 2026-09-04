@@ -14,6 +14,7 @@ import { initSocialQR } from './social-qr.js';
 import { initCommands } from './commands.js';
 import { initModals }   from './modals.js';
 import { initHelp }    from './help.js';
+import { applyModifierLabels } from './utils.js';
 import { updatePreview } from './preview.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHelp();
   initCommands();
   updatePreview();
+  applyModifierLabels();  // set ⌘ or Ctrl based on OS
 
   console.log('%cvCard Pro — EMD Publicidad', 'color:#ea1585;font-weight:700;font-size:14px;');
   console.log('%cUI/UX: Josue Eguia | Nuevo Laredo, Tamps.', 'color:#888;font-size:11px;');
