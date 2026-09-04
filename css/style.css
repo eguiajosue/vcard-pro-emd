@@ -77,16 +77,9 @@ body {
   color: var(--t1);
   height: 100%;
   overflow: hidden;
-  transition: background var(--ts) var(--ease), color var(--ts) var(--ease);
-}
-
-/* React mounts the whole app inside #root — the grid that lays out
-   topbar / main / status-bar has to live here, not on <body>, since
-   #root is body's only real child. */
-#root {
-  height: 100%;
   display: grid;
   grid-template-rows: var(--tw) 1fr var(--bh);
+  transition: background var(--ts) var(--ease), color var(--ts) var(--ease);
 }
 
 /* ══════════════════════════════════════
@@ -666,6 +659,7 @@ button { -webkit-tap-highlight-color: transparent; }
 /* ── RESPONSIVE adjustments ── */
 @media (max-width: 1100px) {
   .preview-area { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  #view-qr { display: none !important; }
   .view-tabs { display: flex !important; }
   /* single-column layout: preview-wrap is a real box again, centered + capped */
   .preview-wrap {
@@ -676,14 +670,6 @@ button { -webkit-tap-highlight-color: transparent; }
     max-width: 292px;
     margin: 0 auto;
   }
-  /* Tab switcher shows one view at a time, driven by data-active-view on
-     .preview-wrap. NOTE: this must NOT be `#view-qr{display:none!important}`
-     unconditionally — that would permanently out-rank any inline/JS-driven
-     visibility toggle and the QR tab would never actually show anything.
-     Scoped to vCard mode only — Social QR mode has its own single-view
-     rules (below) and must not fight with the tab switcher's defaults. */
-  body:not([data-mode="social"]) .preview-wrap:not([data-active-view="qr"]) #view-qr { display: none !important; }
-  body:not([data-mode="social"]) .preview-wrap[data-active-view="qr"] #view-preview { display: none !important; }
 }
 
 @media (max-width: 960px) {
@@ -768,6 +754,7 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 960px) {
   :root { --fw: 300px; --sw: 44px; }
   .preview-area { grid-template-columns: 1fr; }
+  #view-qr { display: none !important; }
 }
 @media (max-width: 700px) {
   :root { --fw: calc(100vw - var(--sw)); }

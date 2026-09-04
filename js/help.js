@@ -1,18 +1,280 @@
-import { MOD } from '../../lib/os.js';
+/**
+ * Help / Onboarding module
+ * Uses GSAP + ScrollTrigger for scroll animations
+ */
+import { MOD, isMac } from './utils.js';
 
-// Mini QR dot pattern (decorative, not a real QR)
-function qrDotsHTML() {
-  const pattern = [
-    1, 1, 1, 0, 1,
-    1, 0, 1, 1, 0,
-    1, 1, 1, 0, 1,
-    0, 1, 0, 1, 1,
-    1, 0, 1, 1, 1,
-  ];
-  return pattern.map(d => `<div class="qr-dot${d ? '' : ' w'}"></div>`).join('');
+let gsapLoaded = false;
+
+// ── Dynamic script loader ──────────────────────────
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
 }
 
-export function helpContent() {
+async function ensureGSAP() {
+  if (gsapLoaded) return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js');
+  window.gsap.registerPlugin(window.ScrollTrigger);
+  gsapLoaded = true;
+}
+
+// ── Init ───────────────────────────────────────────
+export function initHelp() {
+  buildHelpHTML();
+
+  // Help button in topbar
+  const btn = document.getElementById('btn-help');
+  btn?.addEventListener('click', openHelp);
+
+  // Close
+  document.getElementById('help-close-btn')?.addEventListener('click', closeHelp);
+
+  // CTA buttons inside help
+  document.getElementById('help-start-btn')?.addEventListener('click', closeHelp);
+  document.getElementById('help-scroll-btn')?.addEventListener('click', () => {
+    document.getElementById('help-quickstart')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // ESC to close
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('help-overlay')?.classList.contains('open')) closeHelp();
+  });
+
+  // First-time visitor
+  if (!localStorage.getItem('vcp_help_seen')) openHelp();
+}
+
+export async function openHelp() {
+  const overlay = document.getElementById('help-overlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  document.getElementById('help-scroll-area').scrollTop = 0;
+  localStorage.setItem('vcp_help_seen', '1');
+
+  await ensureGSAP();
+  setupAnimations();
+  setupProgressBar();
+  startIllustrationLoops();
+}
+
+function closeHelp() {
+  document.getElementById('help-overlay')?.classList.remove('open');
+  // Kill all ScrollTrigger instances for this overlay
+  window.ScrollTrigger?.getAll().forEach(t => t.kill());
+}
+
+// ── Progress bar ───────────────────────────────────
+function setupProgressBar() {
+  const scroll = document.getElementById('help-scroll-area');
+  const bar    = document.getElementById('help-progress-bar');
+  if (!scroll || !bar) return;
+  scroll.addEventListener('scroll', () => {
+    const pct = (scroll.scrollTop / (scroll.scrollHeight - scroll.clientHeight)) * 100;
+    bar.style.width = Math.min(pct, 100) + '%';
+  });
+}
+
+// ── GSAP scroll animations ─────────────────────────
+function setupAnimations() {
+  const gsap = window.gsap;
+  const ST   = window.ScrollTrigger;
+  const scroller = document.getElementById('help-scroll-area');
+
+  ST.defaults({ scroller });
+
+  // Hero elements
+  gsap.fromTo('.help-hero .hero-badge',
+    { opacity: 0, y: -16 },
+    { opacity: 1, y: 0, duration: .5, ease: 'back.out(1.4)' }
+  );
+  gsap.fromTo('.help-hero h1',
+    { opacity: 0, y: 24 },
+    { opacity: 1, y: 0, duration: .65, ease: 'power3.out', delay: .15 }
+  );
+  gsap.fromTo('.help-hero p',
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: .5, ease: 'power2.out', delay: .3 }
+  );
+  gsap.fromTo('.hero-cta',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: .45, ease: 'power2.out', delay: .45 }
+  );
+
+  // Generic reveal: .gsap-reveal
+  gsap.utils.toArray('.gsap-reveal').forEach(el => {
+    gsap.fromTo(el,
+      { opacity: 0, y: 32 },
+      {
+        opacity: 1, y: 0, duration: .65, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' }
+      }
+    );
+  });
+
+  // Left reveals
+  gsap.utils.toArray('.gsap-reveal-left').forEach(el => {
+    gsap.fromTo(el,
+      { opacity: 0, x: -28 },
+      {
+        opacity: 1, x: 0, duration: .6, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%' }
+      }
+    );
+  });
+
+  // Right reveals
+  gsap.utils.toArray('.gsap-reveal-right').forEach(el => {
+    gsap.fromTo(el,
+      { opacity: 0, x: 28 },
+      {
+        opacity: 1, x: 0, duration: .6, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%' }
+      }
+    );
+  });
+
+  // Scale reveals
+  gsap.utils.toArray('.gsap-reveal-scale').forEach(el => {
+    gsap.fromTo(el,
+      { opacity: 0, scale: .88 },
+      {
+        opacity: 1, scale: 1, duration: .55, ease: 'back.out(1.4)',
+        scrollTrigger: { trigger: el, start: 'top 88%' }
+      }
+    );
+  });
+
+  // Stagger children
+  gsap.utils.toArray('[data-gsap-stagger]').forEach(parent => {
+    const delay = parseFloat(parent.dataset.gsapDelay || 0);
+    gsap.fromTo(parent.children,
+      { opacity: 0, y: 22 },
+      {
+        opacity: 1, y: 0,
+        duration: .5, ease: 'power2.out',
+        stagger: parseFloat(parent.dataset.gsapStagger || .08),
+        delay,
+        scrollTrigger: { trigger: parent, start: 'top 85%' }
+      }
+    );
+  });
+
+  // Bento cards stagger
+  gsap.utils.toArray('.bento-grid').forEach(grid => {
+    gsap.fromTo(grid.children,
+      { opacity: 0, y: 28, scale: .96 },
+      {
+        opacity: 1, y: 0, scale: 1,
+        duration: .5, ease: 'power2.out', stagger: .07,
+        scrollTrigger: { trigger: grid, start: 'top 85%' }
+      }
+    );
+  });
+
+  // Shortcut rows stagger
+  gsap.utils.toArray('.shortcuts-grid').forEach(grid => {
+    gsap.fromTo(grid.children,
+      { opacity: 0, x: -14 },
+      {
+        opacity: 1, x: 0,
+        duration: .4, ease: 'power2.out', stagger: .05,
+        scrollTrigger: { trigger: grid, start: 'top 85%' }
+      }
+    );
+  });
+
+  // Tips strip
+  const tips = document.querySelector('.tips-strip');
+  if (tips) {
+    gsap.fromTo(tips.children,
+      { opacity: 0, scale: .88, y: 10 },
+      {
+        opacity: 1, scale: 1, y: 0,
+        duration: .4, stagger: .06, ease: 'back.out(1.4)',
+        scrollTrigger: { trigger: tips, start: 'top 88%' }
+      }
+    );
+  }
+
+  // Parallax on hero blob
+  gsap.to('.help-hero::before', {
+    yPercent: 30,
+    ease: 'none',
+    scrollTrigger: { trigger: '.help-hero', start: 'top top', end: 'bottom top', scrub: 1 }
+  });
+
+  ST.refresh();
+}
+
+// ── CSS Illustration loops ─────────────────────────
+function startIllustrationLoops() {
+  // Cycle nav items highlight
+  const navItems = document.querySelectorAll('.illus-nav-item');
+  if (navItems.length) {
+    let ni = 0;
+    setInterval(() => {
+      navItems.forEach((el, i) => el.classList.toggle('act', i === ni));
+      ni = (ni + 1) % navItems.length;
+    }, 900);
+  }
+
+  // Cycle export pills
+  const expPills = document.querySelectorAll('.illus-exp-pill');
+  if (expPills.length) {
+    let ep = 0;
+    setInterval(() => {
+      expPills.forEach((el, i) => el.classList.toggle('act', i === ep));
+      ep = (ep + 1) % expPills.length;
+    }, 1100);
+  }
+
+  // Animate key presses
+  const keys = document.querySelectorAll('.illus-key');
+  if (keys.length) {
+    const keySeqs = [[0,1],[2],[0,1,2]];
+    let ks = 0;
+    setInterval(() => {
+      keys.forEach(k => k.classList.remove('press'));
+      const seq = keySeqs[ks % keySeqs.length];
+      seq.forEach(i => keys[i]?.classList.add('press'));
+      ks++;
+    }, 800);
+  }
+
+  // Typing simulation in form fields
+  const typeEls = document.querySelectorAll('.illus-field-text[data-text]');
+  typeEls.forEach(el => {
+    const text = el.dataset.text;
+    let i = 0;
+    const type = () => {
+      if (i <= text.length) {
+        el.textContent = text.slice(0, i);
+        i++;
+        setTimeout(type, 80);
+      } else {
+        setTimeout(() => { i = 0; type(); }, 2000);
+      }
+    };
+    setTimeout(type, Math.random() * 800);
+  });
+}
+
+// ── HTML builder ───────────────────────────────────
+function buildHelpHTML() {
+  const overlay = document.createElement('div');
+  overlay.id = 'help-overlay';
+  overlay.className = 'help-overlay';
+  overlay.innerHTML = helpContent();
+  document.body.appendChild(overlay);
+}
+
+function helpContent() {
   return `
 <!-- Help topbar -->
 <div class="help-bar">
@@ -93,9 +355,9 @@ export function helpContent() {
         <p>Guarda en la libreria, descarga el QR como imagen o exporta en VCF, PDF, HTML o CSV.</p>
         <div class="step-illus">
           <div class="illus-exports">
-            ${['fa-file-csv .VCF', 'fa-file-pdf .PDF', 'fa-globe .HTML', 'fa-table .CSV'].map((f, i) => {
+            ${['fa-file-csv .VCF','fa-file-pdf .PDF','fa-globe .HTML','fa-table .CSV'].map((f,i) => {
               const [icon, label] = f.split(' ');
-              return `<div class="illus-exp-pill${i === 0 ? ' act' : ''}"><i class="fa-solid ${icon}"></i>${label}</div>`;
+              return `<div class="illus-exp-pill${i===0?' act':''}"><i class="fa-solid ${icon}"></i>${label}</div>`;
             }).join('')}
           </div>
         </div>
@@ -121,8 +383,8 @@ export function helpContent() {
         <p>El sidebar izquierdo organiza el formulario en 5 secciones: Datos, Trabajo, Direccion, Marca y Redes. Un punto verde indica que la seccion tiene contenido.</p>
         <div class="illus-sidebar" style="margin-top:14px;">
           <div class="illus-nav">
-            ${['fa-user', 'fa-briefcase', 'fa-location-dot', 'fa-palette', 'fa-hashtag'].map((ic, i) =>
-              `<div class="illus-nav-item${i === 0 ? ' act' : ''}"><i class="fa-solid ${ic}"></i></div>`
+            ${['fa-user','fa-briefcase','fa-location-dot','fa-palette','fa-hashtag'].map((ic,i) =>
+              `<div class="illus-nav-item${i===0?' act':''}"><i class="fa-solid ${ic}"></i></div>`
             ).join('')}
           </div>
           <div class="illus-form-mini">
@@ -153,7 +415,7 @@ export function helpContent() {
         <h3>Marca del cliente</h3>
         <p>Sube el logo de tu cliente y elige su color de marca. El logo aparece centrado en el QR y el color tiñe la vista previa y el borde del codigo.</p>
         <div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap;">
-          ${['#ea1585', '#06b2e3', '#45e0a8', '#ccf32e', '#f59e0b', '#8b5cf6'].map(c =>
+          ${['#ea1585','#06b2e3','#45e0a8','#ccf32e','#f59e0b','#8b5cf6'].map(c =>
             `<div style="width:22px;height:22px;background:${c};border-radius:50%;border:2px solid var(--bg-s);box-shadow:0 0 0 1px var(--br-s);"></div>`
           ).join('')}
           <span style="font-size:.67rem;color:var(--t2);align-self:center;margin-left:4px;">+ color personalizado</span>
@@ -166,7 +428,7 @@ export function helpContent() {
         <h3>Redes sociales</h3>
         <p>Selecciona cualquier red del grid y agrega tu URL. Aparece en la vista previa y se incluye en la vCard con metadatos de red social estandar (X-SOCIALPROFILE).</p>
         <div class="illus-social-grid" style="margin-top:14px;">
-          ${[['fa-instagram', '#E1306C'], ['fa-facebook-f', '#1877F2'], ['fa-x-twitter', '#111'], ['fa-linkedin-in', '#0A66C2'], ['fa-youtube', '#FF0000'], ['fa-tiktok', '#010101'], ['fa-github', '#333'], ['fa-whatsapp', '#25D366'], ['fa-spotify', '#1DB954'], ['fa-twitch', '#9146FF']].map(([ic, bg]) =>
+          ${[['fa-instagram','#E1306C'],['fa-facebook-f','#1877F2'],['fa-x-twitter','#111'],['fa-linkedin-in','#0A66C2'],['fa-youtube','#FF0000'],['fa-tiktok','#010101'],['fa-github','#333'],['fa-whatsapp','#25D366'],['fa-spotify','#1DB954'],['fa-twitch','#9146FF']].map(([ic, bg]) =>
             `<div class="illus-soc" style="background:${bg}"><i class="fa-brands ${ic}"></i></div>`
           ).join('')}
         </div>
@@ -176,7 +438,7 @@ export function helpContent() {
       <div class="bento-card gsap-reveal-scale">
         <div class="bento-icon"><i class="fa-solid fa-qrcode"></i></div>
         <h3>Modo Perfil Social QR</h3>
-        <p>Genera un QR que lleva directo a cualquier red social o URL. Es una pantalla independiente: selecciona la red, escribe tu username y el QR ocupa todo el ancho disponible, actualizandose automaticamente.</p>
+        <p>Genera un QR que lleva directo a cualquier red social o URL. Selecciona la red, escribe tu username y el QR se actualiza automaticamente.</p>
         <div class="illus-form" style="margin-top:14px;">
           <div class="illus-field filled" style="height:22px;">
             <span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);font-size:.62rem;color:var(--t2);">instagram.com/</span>
@@ -201,9 +463,9 @@ export function helpContent() {
         <h3>Libreria de tarjetas</h3>
         <p>Guarda tarjetas para todos tus clientes. Edita, duplica, elimina o descarga un ZIP con QR + vCard de todas las tarjetas.</p>
         <div style="margin-top:14px;display:flex;flex-direction:column;gap:5px;">
-          ${[['JE', 'Josue Eguia', 'Director · EMD'], ['MG', 'Maria Garcia', 'CEO · Empresa'], ['RL', 'Roberto L.', 'Marketing']].map((c, i) =>
-            `<div style="display:flex;align-items:center;gap:8px;background:var(--bg-e);border:1px solid var(--br);border-radius:var(--r-sm);padding:6px 9px;animation:slideIn .3s ${i * .1}s both;">
-              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ea1585,#c0106e);color:#fff;display:flex;justify-content:center;align-items:center;font-size:.6rem;font-weight:700;flex-shrink:0;">${c[0]}</div>
+          ${[['JE','Josue Eguia','Director · EMD'],['MG','Maria Garcia','CEO · Empresa'],['RL','Roberto L.','Marketing']].map((c,i) =>
+            `<div style="display:flex;align-items:center;gap:8px;background:var(--bg-e);border:1px solid var(--br);border-radius:var(--r-sm);padding:6px 9px;animation:slideIn .3s ${i*.1}s both;">
+              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ea1585,#c0106e);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0;">${c[0]}</div>
               <div style="flex:1;overflow:hidden;"><div style="font-size:.74rem;font-weight:600;color:var(--t1);">${c[1]}</div><div style="font-size:.62rem;color:var(--t2);">${c[2]}</div></div>
             </div>`
           ).join('')}
@@ -243,8 +505,8 @@ export function helpContent() {
         <h3>Multiples formatos de exportacion</h3>
         <p>Descarga en el formato que necesitas. VCF para contactos, PDF para imprimir, HTML para compartir como link o CSV para importar en Excel.</p>
         <div class="illus-exports" style="margin-top:14px;gap:6px;">
-          ${[['fa-file-csv', 'VCF', 'iPhone / Android'], ['fa-file-pdf', 'PDF', '85×55mm print'], ['fa-globe', 'HTML', 'Link web'], ['fa-table', 'CSV', 'Excel / Sheets']].map(([ic, lbl, desc], i) =>
-            `<div class="illus-exp-pill${i === 0 ? ' act' : ''}"><i class="fa-solid ${ic}"></i><div><div style="font-weight:700;">${lbl}</div><div style="font-size:.57rem;opacity:.7;">${desc}</div></div></div>`
+          ${[['fa-file-csv','VCF','iPhone / Android'],['fa-file-pdf','PDF','85×55mm print'],['fa-globe','HTML','Link web'],['fa-table','CSV','Excel / Sheets']].map(([ic,lbl,desc],i) =>
+            `<div class="illus-exp-pill${i===0?' act':''}"><i class="fa-solid ${ic}"></i><div><div style="font-weight:700;">${lbl}</div><div style="font-size:.57rem;opacity:.7;">${desc}</div></div></div>`
           ).join('')}
         </div>
       </div>
@@ -254,12 +516,12 @@ export function helpContent() {
     <!-- Tips strip -->
     <div class="tips-strip" style="margin-top:28px;">
       ${[
-        ['fa-lightbulb', 'El formato VCF es compatible con iPhone, Android, Outlook y Gmail.'],
-        ['fa-sparkles', 'El logo en el QR se recorta en cuadrado con fondo blanco automaticamente.'],
-        ['fa-arrows-rotate', 'La vista previa se sincroniza con el formulario sin recargar.'],
-        ['fa-floppy-disk', 'Las tarjetas se guardan en el navegador (localStorage). No necesitas cuenta.'],
-        ['fa-file-zipper', 'El ZIP incluye el .vcf y el .png del QR de cada tarjeta en la libreria.'],
-        ['fa-moon', 'El tema oscuro / claro detecta la preferencia de tu sistema operativo.'],
+        ['fa-lightbulb','El formato VCF es compatible con iPhone, Android, Outlook y Gmail.'],
+        ['fa-sparkles','El logo en el QR se recorta en cuadrado con fondo blanco automaticamente.'],
+        ['fa-arrows-rotate','La vista previa se sincroniza con el formulario sin recargar.'],
+        ['fa-floppy-disk','Las tarjetas se guardan en el navegador (localStorage). No necesitas cuenta.'],
+        ['fa-file-zipper','El ZIP incluye el .vcf y el .png del QR de cada tarjeta en la libreria.'],
+        ['fa-moon','El tema oscuro / claro detecta la preferencia de tu sistema operativo.'],
       ].map(([ic, txt]) =>
         `<div class="tip-pill"><i class="fa-solid ${ic}"></i><span>${txt}</span></div>`
       ).join('')}
@@ -274,16 +536,16 @@ export function helpContent() {
 
     <div class="shortcuts-grid">
       ${[
-        ['Abrir paleta de comandos', [MOD, 'K'], true],
-        ['Guardar tarjeta', [MOD, 'S'], false],
-        ['Nueva tarjeta', [MOD, 'N'], false],
-        ['Generar codigo QR', [MOD, '↵'], true],
-        ['Abrir libreria', [MOD, 'L'], false],
-        ['Abrir exportacion', [MOD, 'E'], false],
-        ['Cambiar tema', [MOD, 'D'], false],
-        ['Seccion siguiente', [MOD, '→'], false],
-        ['Seccion anterior', [MOD, '←'], false],
-        ['Cerrar modales / ayuda', ['Esc'], false],
+        ['Abrir paleta de comandos', [MOD,'K'], true],
+        ['Guardar tarjeta',          [MOD,'S'], false],
+        ['Nueva tarjeta',            [MOD,'N'], false],
+        ['Generar codigo QR',        [MOD,'↵'], true],
+        ['Abrir libreria',           [MOD,'L'], false],
+        ['Abrir exportacion',        [MOD,'E'], false],
+        ['Cambiar tema',             [MOD,'D'], false],
+        ['Seccion siguiente',        [MOD,'→'], false],
+        ['Seccion anterior',         [MOD,'←'], false],
+        ['Cerrar modales / ayuda',   ['Esc'],    false],
       ].map(([label, keys, hl]) =>
         `<div class="shortcut-row${hl ? ' highlight' : ''}">
           <span class="shortcut-label">${label}</span>
@@ -316,14 +578,14 @@ export function helpContent() {
       </div>
       <div style="padding:5px;">
         ${[
-          ['fa-plus', 'Nueva Tarjeta', `${MOD}N`, true],
-          ['fa-floppy-disk', 'Guardar Tarjeta', `${MOD}S`, false],
-          ['fa-qrcode', 'Generar QR', `${MOD}↵`, false],
-          ['fa-address-book', 'Mis Tarjetas', `${MOD}L`, false],
-          ['fa-download', 'Exportar', `${MOD}E`, false],
-        ].map(([ic, lbl, sc, focused]) =>
-          `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--r-sm);background:${focused ? 'var(--ac-bg)' : 'transparent'};">
-            <div style="width:25px;height:25px;background:${focused ? 'rgba(234,21,133,.14)' : 'var(--bg-i)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:${focused ? 'var(--fuchsia)' : 'var(--t2)'};">
+          ['fa-plus','Nueva Tarjeta',`${MOD}N`,true],
+          ['fa-floppy-disk','Guardar Tarjeta',`${MOD}S`,false],
+          ['fa-qrcode','Generar QR',`${MOD}↵`,false],
+          ['fa-address-book','Mis Tarjetas',`${MOD}L`,false],
+          ['fa-download','Exportar',`${MOD}E`,false],
+        ].map(([ic,lbl,sc,focused]) =>
+          `<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--r-sm);background:${focused?'var(--ac-bg)':'transparent'};">
+            <div style="width:25px;height:25px;background:${focused?'rgba(234,21,133,.14)':'var(--bg-i)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:${focused?'var(--fuchsia)':'var(--t2)'};">
               <i class="fa-solid ${ic}"></i>
             </div>
             <span style="flex:1;font-size:.79rem;font-weight:500;color:var(--t1);">${lbl}</span>
@@ -340,7 +602,7 @@ export function helpContent() {
     <h2 class="gsap-reveal" style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;letter-spacing:-.04em;color:var(--t1);margin-bottom:12px;">Crea tu primera tarjeta ahora</h2>
     <p class="gsap-reveal" style="color:var(--t2);font-size:.9rem;margin-bottom:28px;">Todo lo que necesitas esta listo. El formulario, el QR y la exportacion en un solo lugar.</p>
     <div class="hero-cta gsap-reveal">
-      <button class="btn-hero-primary" id="help-start-btn-2">
+      <button class="btn-hero-primary" id="help-start-btn-2" onclick="document.getElementById('help-overlay').classList.remove('open')">
         <i class="fa-solid fa-arrow-right"></i> Ir a la aplicacion
       </button>
     </div>
@@ -351,4 +613,16 @@ export function helpContent() {
 
 </div><!-- /.help-scroll -->
 `;
+}
+
+// Mini QR dot pattern (decorative, not real QR)
+function qrDotsHTML() {
+  const pattern = [
+    1,1,1,0,1,
+    1,0,1,1,0,
+    1,1,1,0,1,
+    0,1,0,1,1,
+    1,0,1,1,1,
+  ];
+  return pattern.map(d => `<div class="qr-dot${d?'':' w'}"></div>`).join('');
 }
