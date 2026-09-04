@@ -14,6 +14,14 @@ export function initQR() {
 }
 
 export async function generarQR() {
+  // In Social QR mode the code is generated automatically as you type
+  // (see social-qr.js) — this vCard-only validation/flow doesn't apply,
+  // and used to yank the user back into the vCard "Datos" section.
+  if (state.currentMode === 'social') {
+    showToast('En Perfil Social QR el codigo se genera automaticamente al escribir.', 'info');
+    return;
+  }
+
   const n      = document.getElementById('v_nombre')?.value.trim();
   const phones = getPhoneEntries();
 

@@ -74,13 +74,13 @@ export function updatePreview() {
 
   // Social list
   const pvSL = g('pv-social-list');
-  pvSL.innerHTML = '';
+  let sl = '';
   document.querySelectorAll('.social-input').forEach(inp => {
     const net  = SOCIAL_NETWORKS.find(s => s.id === inp.dataset.network);
     if (!net) return;
     const url  = inp.value.trim();
     const user = url ? url.replace(/\/$/, '').split('/').pop().split('?')[0] : 'Enlace';
-    pvSL.innerHTML += `
+    sl += `
       <div class="pv-social-item">
         <div class="pv-social-icon" style="background:${net.color}"><i class="fa-brands ${net.icon}"></i></div>
         <div class="pv-social-text-container">
@@ -90,6 +90,7 @@ export function updatePreview() {
         <i class="fa-solid fa-angle-right pv-social-arrow"></i>
       </div>`;
   });
+  pvSL.innerHTML = sl;
 }
 
 function contactRow(icon, label, value) {

@@ -31,7 +31,7 @@
   }());
 </script>
 </head>
-<body>
+<body data-mode="vcard">
 
 <!-- Toast container -->
 <div id="toast-container" aria-live="polite"></div>
@@ -259,8 +259,12 @@
   <!-- Preview panel -->
   <div class="preview-panel">
     <div class="preview-area">
+      <!-- Tab switcher (mobile/tablet only — desktop shows both panels side by side) -->
+      <div class="view-tabs">
+        <button class="vtb active" id="btn-tab-preview"><i class="fa-solid fa-id-card"></i> Tarjeta</button>
+        <button class="vtb" id="btn-tab-qr" disabled><i class="fa-solid fa-qrcode"></i> QR <i class="fa-solid fa-lock" id="qr-lock-icon"></i></button>
+      </div>
       <div class="preview-wrap">
-        <!-- Tab switcher -->
         <!-- Preview view (always visible left) -->
         <div id="view-preview">
           <div class="contact-card">
