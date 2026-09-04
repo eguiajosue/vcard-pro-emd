@@ -1,4 +1,5 @@
 import { showToast } from './toast.js';
+import { openHelp } from './help.js';
 import { toggleTheme } from './theme.js';
 import { switchMode, switchSection, nextSection, prevSection } from './nav.js';
 import { saveCurrentCard, newCard, openLibrary, openModal } from './library.js';
@@ -15,6 +16,7 @@ const COMMANDS = [
   { label:'Cambiar Tema',     sc:['⌘','D'], icon:'fa-moon',         action: () => toggleTheme() },
   { label:'Modo Social QR',   sc:[],        icon:'fa-share-nodes',  action: () => switchMode('social') },
   { label:'Modo vCard',       sc:[],        icon:'fa-address-card', action: () => switchMode('vcard') },
+  { label:'Ayuda / Tutorial',  sc:['?'],      icon:'fa-circle-question', action: () => openHelp() },
   { label:'Sec. Datos',       sc:[],        icon:'fa-user',         action: () => { switchMode('vcard'); switchSection('datos'); } },
   { label:'Sec. Trabajo',     sc:[],        icon:'fa-briefcase',    action: () => { switchMode('vcard'); switchSection('trabajo'); } },
   { label:'Sec. Direccion',   sc:[],        icon:'fa-location-dot', action: () => { switchMode('vcard'); switchSection('direccion'); } },

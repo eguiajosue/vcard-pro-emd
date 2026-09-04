@@ -13,6 +13,7 @@ import { initExport }   from './export.js';
 import { initSocialQR } from './social-qr.js';
 import { initCommands } from './commands.js';
 import { initModals }   from './modals.js';
+import { initHelp }    from './help.js';
 import { updatePreview } from './preview.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initExport();
   initSocialQR();
   initModals();
+  initHelp();
   initCommands();
   updatePreview();
 
