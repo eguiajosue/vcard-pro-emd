@@ -565,12 +565,21 @@ button { -webkit-tap-highlight-color: transparent; }
   overflow: hidden;
 }
 
-/* Both views always visible */
+/* preview-wrap is just a DOM grouping node — drop it from layout so
+   #view-preview / #view-qr become the actual grid items and fill both
+   columns instead of the grid collapsing to a single occupied cell */
+.preview-wrap {
+  display: contents;
+}
+
+/* Both views always visible, filling their full grid-cell height
+   (preview-wrap is display:contents, so these are the real grid items) */
 #view-preview,
 #view-qr {
   display: flex !important;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -645,9 +654,18 @@ button { -webkit-tap-highlight-color: transparent; }
 
 /* ── RESPONSIVE adjustments ── */
 @media (max-width: 1100px) {
-  .preview-area { grid-template-columns: 1fr; }
+  .preview-area { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   #view-qr { display: none !important; }
   .view-tabs { display: flex !important; }
+  /* single-column layout: preview-wrap is a real box again, centered + capped */
+  .preview-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 292px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 960px) {
@@ -756,13 +774,6 @@ button { -webkit-tap-highlight-color: transparent; }
 .preview-area {
   align-content: stretch;
   justify-content: stretch;
-}
-
-/* Force both preview columns to stretch to full cell height */
-.preview-area > div {
-  min-height: 0;
-  display: flex !important;
-  flex-direction: column;
 }
 
 /* Topbar: ensure new-card button stays small */
