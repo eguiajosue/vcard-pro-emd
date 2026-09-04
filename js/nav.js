@@ -82,6 +82,7 @@ export function prevSection() {
 export function switchMode(mode) {
   state.currentMode = mode;
   const isVC = mode === 'vcard';
+  document.body.dataset.mode = mode;
   document.getElementById('mpill-vcard')?.classList.toggle('active', isVC);
   document.getElementById('mpill-social')?.classList.toggle('active', !isVC);
   const vn = document.getElementById('vcard-nav');

@@ -555,10 +555,14 @@ button { -webkit-tap-highlight-color: transparent; }
 /* Form panel: no header means more content space */
 .form-panel { --fw: 390px; }
 
-/* ── PREVIEW: side-by-side, fill height ── */
+/* ── PREVIEW: side-by-side, fill height ──
+   QR column gets more width than the contact card: the contact card's
+   content (a few text rows) doesn't need much room, while a square QR
+   code is width-limited in a portrait cell — giving it more width
+   shrinks the empty margin around the generated code. */
 .preview-area {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.85fr 1.15fr;
   gap: 10px;
   padding: 12px;
   align-items: stretch;
@@ -779,4 +783,45 @@ button { -webkit-tap-highlight-color: transparent; }
 /* Topbar: ensure new-card button stays small */
 #btn-new-card {
   font-size: .68rem;
+}
+
+/* ══════════════════════════════════════
+   MODE SEPARATION — vCard vs Perfil Social QR
+   Both modes previously shared one continuous scroll of ALL form
+   sections regardless of the VC/QR pill; only the sidebar dimmed.
+   Now each mode shows only its own section(s), so "Perfil Social QR"
+   is a real standalone screen instead of buried in the vCard form.
+══════════════════════════════════════ */
+body[data-mode="social"] #sec-datos,
+body[data-mode="social"] #sec-trabajo,
+body[data-mode="social"] #sec-direccion,
+body[data-mode="social"] #sec-marca,
+body[data-mode="social"] #sec-redes,
+body[data-mode="social"] .dev-info {
+  display: none !important;
+}
+body:not([data-mode="social"]) #sec-social-qr {
+  display: none !important;
+}
+#sec-social-qr .sec-divider { border-top: none; margin-top: 0; padding-top: 0; }
+
+/* Social QR mode: the QR *is* the whole point of this screen — give it
+   the full preview width instead of splitting with an irrelevant
+   contact-card preview. Directly addresses the QR area being the
+   biggest offender for leftover empty space. */
+body[data-mode="social"] .preview-area {
+  grid-template-columns: 1fr;
+}
+body[data-mode="social"] #view-preview {
+  display: none !important;
+}
+body[data-mode="social"] .view-tabs {
+  display: none !important;
+}
+
+/* Social QR generates automatically as you type (see social-qr.js) —
+   the vCard form-foot (Generar/Guardar/Exportar/section-nav) doesn't
+   apply to this standalone screen. */
+body[data-mode="social"] .form-foot {
+  display: none !important;
 }
