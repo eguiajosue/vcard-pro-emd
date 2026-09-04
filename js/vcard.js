@@ -1,4 +1,4 @@
-import { PT_MAP, ET_MAP } from '../data.js';
+import { PT_MAP, ET_MAP } from './data.js';
 
 export function buildVCardString(data) {
   let v = 'BEGIN:VCARD\nVERSION:3.0\n';
@@ -29,7 +29,7 @@ export function buildVCardString(data) {
 
 export function slugify(str) {
   return str.toLowerCase()
-    .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
 }
 
